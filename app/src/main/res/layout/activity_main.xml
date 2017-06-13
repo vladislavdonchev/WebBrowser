@@ -13,6 +13,7 @@
         android:orientation="horizontal">
 
         <EditText
+            android:id="@+id/activity_main_address_bar"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight=".8"/>
@@ -30,6 +31,7 @@
                 android:layout_alignParentRight="true"/>
 
             <Button
+                android:id="@+id/activity_main_new_tab_button"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_toLeftOf="@id/activity_main_menu_button"
@@ -40,7 +42,6 @@
     <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
     </WebView>
 
 </LinearLayout>
