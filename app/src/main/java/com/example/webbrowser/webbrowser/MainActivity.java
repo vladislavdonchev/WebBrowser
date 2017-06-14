@@ -1,11 +1,18 @@
 package com.example.webbrowser.webbrowser;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.PersistableBundle;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -13,12 +20,13 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnTouchListener {
 
-    private EditText addresdsBarEditText;
+    private EditText addressBarEditText;
     private Button addNewTabButton;
     private ImageButton menuButton;
     private Button goButton;
@@ -30,11 +38,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        addresdsBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
+        addressBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
         webView = (WebView) findViewById(R.id.activity_main_webview);
+
+        goButton.setEnabled(false);
+
         webViewProgressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
         webViewProgressBar.setMax(100);
         webViewProgressBar.setVisibility(View.GONE);
@@ -43,13 +54,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menuButton.setOnClickListener(this);
         goButton.setOnClickListener(this);
 
+        addressBarEditText.addTextChangedListener(this);
+
+        webView.setOnTouchListener(this);
+
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
+            addressBarEditText.setText(savedInstanceState.getString(Constants.ADDRESS_BAR_TEXT_KEY, ""));
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Constants.ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
         webView.saveState(outState);
     }
 
@@ -63,10 +81,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.activity_main_go_button:
-                loadURL(addresdsBarEditText.getText().toString());
-
+                loadURL(addressBarEditText.getText().toString());
                 break;
         }
+
+        hideKeyBoard();
     }
 
     private void loadURL(String url) {
@@ -78,6 +97,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewProgressBar.setProgress(0);
         webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
+    }
+
+    private void hideKeyBoard() {
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(addressBarEditText.getWindowToken(), 0);
     }
 
     private String formattedURL(String input) {
@@ -94,6 +119,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (progress>=100) {
             webViewProgressBar.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        if(editable.length() == 0) {
+            goButton.setEnabled(false);
+        } else {
+            goButton.setEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        hideKeyBoard();
+        return false;
     }
 
     private class MyWebViewClient extends WebViewClient {
@@ -113,6 +163,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             MainActivity.this.updateProgressBar(newProgress);
         }
-
     }
 }
