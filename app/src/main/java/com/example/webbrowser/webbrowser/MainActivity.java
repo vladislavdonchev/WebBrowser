@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText addresdsBarEditText;
     private Button addNewTabButton;
     private ImageButton menuButton;
+    private Button goButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +26,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addresdsBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
-
+        goButton = (Button) findViewById(R.id.activity_main_go_button);
 
         addNewTabButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
+        goButton.setOnClickListener(this);
     }
 
     @Override
@@ -39,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.activity_main_menu_button:
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.activity_main_go_button:
+                Toast.makeText(this, "GO button clicked", Toast.LENGTH_SHORT).show();
                 break;
         }
     }
