@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -17,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button addNewTabButton;
     private ImageButton menuButton;
     private Button goButton;
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
+        webView = (WebView) findViewById(R.id.activity_main_webview);
 
         addNewTabButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
