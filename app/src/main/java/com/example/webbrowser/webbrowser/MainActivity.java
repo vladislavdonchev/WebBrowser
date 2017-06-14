@@ -16,7 +16,7 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText addresdsBarEditText;
     private Button addNewTabButton;
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.activity_main_go_button:
                 loadURL(addresdsBarEditText.getText().toString());
+
                 break;
         }
     }
@@ -74,13 +75,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webView.setWebViewClient(new MyWebViewClient());
         webView.setWebChromeClient(new MyWebChromeClient());
 
-        if (!url.contains("http")) {
-            url = "http://" + url;
-        }
-
         webViewProgressBar.setProgress(0);
         webViewProgressBar.setVisibility(View.VISIBLE);
-        webView.loadUrl(url);
+        webView.loadUrl(formattedURL(url));
+    }
+
+    private String formattedURL(String input) {
+        String formattedURL = input.toLowerCase();
+        if (!formattedURL.startsWith("http://") && !formattedURL.startsWith("https://")) {
+            formattedURL = "http://" + input;
+        }
+        return formattedURL;
     }
 
     private void updateProgressBar(int progress) {
@@ -92,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private class MyWebViewClient extends WebViewClient {
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
