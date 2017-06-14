@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 WebSettings wbset = webView.getSettings();
                 wbset.setJavaScriptEnabled(true);
                 webView.setWebViewClient(new MyWebViewClient());
-                webView.loadUrl(addresdsBarEditText.getText().toString());
+                webView.loadUrl(formattedURL(addresdsBarEditText.getText().toString()));
                 break;
         }
     }
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
-            return true;
+            return false;
         }
     }
 
@@ -77,5 +77,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void afterTextChanged(Editable editable) {
 
+    }
+
+    private String formattedURL(String input) {
+        String formattedURL = input.toLowerCase();
+        if (!formattedURL.startsWith("http://") && !formattedURL.startsWith("https://")) {
+            formattedURL = "http://" + input;
+        }
+        return formattedURL;
     }
 }
