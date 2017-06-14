@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -46,8 +48,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.activity_main_go_button:
-                Toast.makeText(this, "GO button clicked", Toast.LENGTH_SHORT).show();
+                WebSettings wbset = webView.getSettings();
+                wbset.setJavaScriptEnabled(true);
+                webView.setWebViewClient(new MyWebViewClient());
+                webView.loadUrl(addresdsBarEditText.getText().toString());
                 break;
+        }
+    }
+
+    private class MyWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
+            return true;
         }
     }
 
