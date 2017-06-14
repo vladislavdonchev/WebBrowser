@@ -7,37 +7,54 @@
     android:layout_height="match_parent"
     tools:context="com.example.webbrowser.webbrowser.MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/activity_main_address_bar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight=".8"/>
+        android:layout_height="48dp">
 
         <RelativeLayout
-            android:layout_width="0dp"
+            android:id="@+id/activity_main_menu_container"
+            android:background="#FF0000"
+            android:layout_width="96dp"
             android:layout_height="match_parent"
-            android:layout_weight=".2">
+            android:layout_alignParentRight="true">
 
             <ImageButton
                 android:id="@+id/activity_main_menu_button"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
-                android:src="@android:drawable/ic_menu_help"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentRight="true"
+                android:src="@android:drawable/ic_menu_help" />
 
             <Button
                 android:id="@+id/activity_main_new_tab_button"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_toLeftOf="@id/activity_main_menu_button"
-                android:text="+"/>
+                android:text="+" />
         </RelativeLayout>
-    </LinearLayout>
+
+        <RelativeLayout
+            android:background="#FFFF00"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@id/activity_main_menu_container">
+
+            <Button
+                android:id="@+id/activity_main_go_button"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:text="GO" />
+
+            <EditText
+                android:id="@+id/activity_main_address_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@id/activity_main_go_button" />
+
+        </RelativeLayout>
+    </RelativeLayout>
 
     <WebView
         android:layout_width="match_parent"

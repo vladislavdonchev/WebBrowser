@@ -3,13 +3,15 @@ package com.example.webbrowser.webbrowser;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
 
     private EditText addresdsBarEditText;
     private Button addNewTabButton;
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addresdsBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
+
 
         addNewTabButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
@@ -38,5 +41,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
     }
 }
