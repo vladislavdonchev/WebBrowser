@@ -28,7 +28,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View content = inflater.inflate(R.layout.fragment_web_view, container);
+        View content = inflater.inflate(R.layout.fragment_web_view, container, false);
         webView = (WebView) content.findViewById(R.id.fragment_web_view);
 
         webViewProgressBar = (ProgressBar) content.findViewById(R.id.fragment_progress_bar);
