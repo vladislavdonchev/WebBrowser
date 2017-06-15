@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button addNewTabButton;
     private ImageButton menuButton;
     private Button goButton;
-    private WebView webView;
     private ProgressBar webViewProgressBar;
 
     @Override
@@ -36,8 +35,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
-        webView = (WebView) findViewById(R.id.activity_main_webview);
-
         goButton.setEnabled(false);
 
         webViewProgressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
