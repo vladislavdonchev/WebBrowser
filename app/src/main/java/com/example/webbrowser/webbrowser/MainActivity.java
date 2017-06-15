@@ -1,9 +1,11 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -18,7 +20,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, View.OnKeyListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.BackPressedListener, View.OnKeyListener {
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -64,6 +66,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         transaction.commit();
 
         activeFragment.setHideKeyboardListener(this);
+        activeFragment.setBackPressedListener(this);
     }
 
     @Override
@@ -131,5 +134,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
 
         return false;
+    }
+
+    @Override
+    public void closeApp() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

@@ -24,6 +24,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     private WebView webView;
     private ProgressBar webViewProgressBar;
     private WeakReference<HideKeyboardListener> hideKeyboardListener;
+    private WeakReference<BackPressedListener> backPressedListener;
 
     @Nullable
     @Override
@@ -52,8 +53,16 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         this.hideKeyboardListener = new WeakReference<HideKeyboardListener>(hideKeyboardListener);
     }
 
+    public void setBackPressedListener(BackPressedListener backPressedListener) {
+        this.backPressedListener = new WeakReference<BackPressedListener>(backPressedListener);
+    }
+
     public interface HideKeyboardListener {
         void hideKeyboard();
+    }
+
+    public interface BackPressedListener {
+        void closeApp();
     }
 
     @Override
@@ -65,6 +74,8 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     public void onBackPressed() {
         if (webView.canGoBack()) {
             webView.goBack();
+        } else {
+            backPressedListener.get().closeApp();
         }
     }
 
