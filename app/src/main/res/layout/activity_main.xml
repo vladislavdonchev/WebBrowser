@@ -61,12 +61,14 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
         android:layout_below="@id/activity_main_menu_container" />
 
     <WebView
         android:id="@+id/activity_main_webview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@id/activity_main_menu_container">
     </WebView>
 
 </LinearLayout>

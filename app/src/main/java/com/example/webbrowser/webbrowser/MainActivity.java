@@ -94,8 +94,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webView.setWebViewClient(new MyWebViewClient());
         webView.setWebChromeClient(new MyWebChromeClient());
 
-        webViewProgressBar.setProgress(0);
-        webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
     }
 
@@ -150,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            webViewProgressBar.setProgress(0);
+            webViewProgressBar.setVisibility(View.VISIBLE);
 
             return false;
         }
