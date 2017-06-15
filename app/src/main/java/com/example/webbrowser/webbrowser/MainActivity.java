@@ -88,6 +88,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         hideKeyBoard();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+
+    }
+
     private void loadURL(String url) {
         WebSettings wbset = webView.getSettings();
         wbset.setJavaScriptEnabled(true);
