@@ -1,15 +1,10 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.PersistableBundle;
-import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -20,7 +15,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -85,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
 
-        hideKeyBoard();
+        hideKeyboard();
     }
 
     @Override
@@ -95,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             super.onBackPressed();
         }
-
     }
 
     private void loadURL(String url) {
@@ -107,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webView.loadUrl(formattedURL(url));
     }
 
-    private void hideKeyBoard() {
+    private void hideKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(addressBarEditText.getWindowToken(), 0);
@@ -141,16 +134,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void afterTextChanged(Editable editable) {
-        if(editable.length() == 0) {
-            goButton.setEnabled(false);
-        } else {
-            goButton.setEnabled(true);
-        }
+        goButton.setEnabled(editable.length() != 0);
     }
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        hideKeyBoard();
+        hideKeyboard();
         return false;
     }
 
