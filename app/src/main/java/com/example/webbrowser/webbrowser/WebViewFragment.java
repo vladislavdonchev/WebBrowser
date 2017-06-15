@@ -13,6 +13,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Asus on 6/15/2017.
  */
@@ -21,6 +23,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     private WebView webView;
     private ProgressBar webViewProgressBar;
+    private WeakReference<HideKeyboardListener> hideKeyboardListener;
 
     @Nullable
     @Override
@@ -45,8 +48,17 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webView.saveState(outState);
     }
 
+    public void setHideKeyboardListener(HideKeyboardListener hideKeyboardListener) {
+        this.hideKeyboardListener = new WeakReference<HideKeyboardListener>(hideKeyboardListener);
+    }
+
+    public interface HideKeyboardListener {
+        void hideKeyboard();
+    }
+
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+        hideKeyboardListener.get().hideKeyboard();
         return false;
     }
 

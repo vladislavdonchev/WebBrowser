@@ -1,6 +1,7 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,7 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
+public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener {
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -30,6 +31,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
         goButton.setEnabled(false);
+
+        activeFragment = (WebViewFragment) getSupportFragmentManager().findFragmentById(R.id.activity_main_web_view_fragment);
+        activeFragment.setHideKeyboardListener(this);
 
         addNewTabButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
@@ -71,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         activeFragment.onBackPressed();
     }
 
-    private void hideKeyboard() {
+    @Override
+    public void hideKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(addressBarEditText.getWindowToken(), 0);
