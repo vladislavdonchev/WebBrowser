@@ -45,7 +45,7 @@
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
-                android:text="GO" />
+                android:background="@drawable/ic_navigate_next_black" />
 
             <EditText
                 android:id="@+id/activity_main_address_bar"

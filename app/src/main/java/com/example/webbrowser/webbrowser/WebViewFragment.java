@@ -89,7 +89,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     private void updateProgressBar(int progress) {
         webViewProgressBar.setProgress(progress);
 
-        if (progress>=100) {
+        if (progress >= 100) {
             webViewProgressBar.setVisibility(View.GONE);
         }
     }
