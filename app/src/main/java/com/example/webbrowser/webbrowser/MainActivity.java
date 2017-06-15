@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -13,7 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, View.OnKeyListener {
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -39,6 +40,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         menuButton.setOnClickListener(this);
         goButton.setOnClickListener(this);
 
+        addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
 
         if (savedInstanceState != null) {
@@ -95,5 +97,21 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     public void afterTextChanged(Editable editable) {
         goButton.setEnabled(editable.length() != 0);
+    }
+
+    @Override
+    public boolean onKey(View view, int i, KeyEvent keyEvent) {
+        if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (i) {
+                case KeyEvent.KEYCODE_ENTER:
+                    activeFragment.loadURL(addressBarEditText.getText().toString());
+                    hideKeyboard();
+                    return true;
+                default:
+                    break;
+            }
+        }
+
+        return false;
     }
 }
