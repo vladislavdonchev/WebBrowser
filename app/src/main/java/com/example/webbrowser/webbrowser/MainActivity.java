@@ -66,6 +66,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
+        addressBarEditText.setFocusableInTouchMode(true);
 
         if (savedInstanceState != null) {
             addressBarEditText.setText(savedInstanceState.getString(Constants.ADDRESS_BAR_TEXT_KEY, ""));
