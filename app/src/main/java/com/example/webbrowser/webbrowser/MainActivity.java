@@ -2,9 +2,13 @@ package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.PagerTitleStrip;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +24,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.BackPressedListener, View.OnKeyListener {
 
     private EditText addressBarEditText;
@@ -27,7 +33,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private ImageButton menuButton;
     private Button goButton;
     private WebViewFragment activeFragment;
-    private LinearLayout container;
+    private ViewPager webViewPager;
+    private PagerTitleStrip pagerTitleStrip;
+
+    private ArrayList<WebViewFragment> webViewFragments = new ArrayList<>();
+
+    private WebViewPagerAdapter webViewPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +49,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
         menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
-        container = (LinearLayout) findViewById(R.id.activity_main_web_view_container);
+        webViewPager = (ViewPager) findViewById(R.id.activity_main_web_view_pager);
+        pagerTitleStrip = (PagerTitleStrip) findViewById(R.id.activity_main_web_view_title_strip);
+
+        webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
+
+        webViewPager.setAdapter(webViewPagerAdapter);
 
         goButton.setEnabled(false);
 
@@ -57,18 +73,41 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void addNewTab() {
-        activeFragment = new WebViewFragment();
+        WebViewFragment webViewFragment = new WebViewFragment();
+        webViewFragments.add(webViewFragment);
+        webViewPagerAdapter.notifyDataSetChanged();
+        webViewPager.setCurrentItem(webViewFragments.size() - 1);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction  = fragmentManager.beginTransaction();
-        transaction.replace(R.id.activity_main_web_view_container,activeFragment, "Fragment" + fragmentManager.getFragments().size());
-
-        transaction.commit();
-
-        activeFragment.setHideKeyboardListener(this);
-        activeFragment.setBackPressedListener(this);
+        webViewFragment.setHideKeyboardListener(this);
+        webViewFragment.setBackPressedListener(this);
 
         addressBarEditText.setText("");
+        showKeyboard();
+        addressBarEditText.setFocusableInTouchMode(true);
+        addressBarEditText.requestFocus();
+    }
+
+    private class WebViewPagerAdapter extends FragmentStatePagerAdapter {
+
+        public WebViewPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            activeFragment = webViewFragments.get(position);
+            return webViewFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return webViewFragments.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return super.getPageTitle(position);
+        }
     }
 
     @Override
@@ -105,6 +144,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(addressBarEditText.getWindowToken(), 0);
+    }
+
+    public void showKeyboard() {
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_FORCED);
     }
 
     @Override
