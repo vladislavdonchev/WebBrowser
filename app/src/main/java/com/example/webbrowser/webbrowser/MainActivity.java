@@ -11,8 +11,11 @@ import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,8 +23,9 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener, ViewPager.OnPageChangeListener {
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -29,7 +33,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private Button goButton;
     private ViewPager webViewPager;
 
-    private ArrayList<WebViewFragment> webViewFragments = new ArrayList<>();
+    private SparseArray<WebViewFragment> activeFragmentsMap = new SparseArray<>();
+    private ArrayList<WebViewFragment> webViewFragments = new ArrayList<WebViewFragment>();
 
     private WebViewPagerAdapter webViewPagerAdapter;
 
@@ -46,6 +51,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
 
+        webViewPager.setOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
 
         goButton.setEnabled(false);
@@ -66,18 +72,28 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void addNewTab() {
-        WebViewFragment webViewFragment = new WebViewFragment();
-        webViewFragments.add(webViewFragment);
         webViewPagerAdapter.notifyDataSetChanged();
-        webViewPager.setCurrentItem(webViewFragments.size() - 1);
-
-        webViewFragment.setHideKeyboardListener(this);
-        webViewFragment.setNavigationListener(this);
+        webViewPager.setCurrentItem(activeFragmentsMap.size() - 1);
 
         addressBarEditText.setText("");
         showKeyboard();
         addressBarEditText.setFocusableInTouchMode(true);
         addressBarEditText.requestFocus();
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        Log.d(WebViewFragment.TAG, String.valueOf(position));
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
     private class WebViewPagerAdapter extends FragmentStatePagerAdapter {
@@ -88,7 +104,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         @Override
         public Fragment getItem(int position) {
-            return webViewFragments.get(position);
+            WebViewFragment webViewFragment = new WebViewFragment();
+            webViewFragment.setHideKeyboardListener(MainActivity.this);
+            webViewFragment.setNavigationListener(MainActivity.this);
+            return webViewFragment;
         }
 
         @Override
@@ -100,13 +119,26 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         public CharSequence getPageTitle(int position) {
             return webViewFragments.get(webViewPager.getCurrentItem()).getPageTitle();
         }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            WebViewFragment fragment = webViewFragments.get(position);
+            activeFragmentsMap.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            activeFragmentsMap.remove(position);
+            super.destroyItem(container, position, object);
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Constants.ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
-        webViewFragments.get(webViewPager.getCurrentItem()).saveWebViewState(outState);
+        activeFragmentsMap.get(webViewPager.getCurrentItem()).saveWebViewState(outState);
     }
 
     @Override
@@ -119,7 +151,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.activity_main_go_button:
-                webViewFragments.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
+                activeFragmentsMap.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
                 break;
         }
 
@@ -128,7 +160,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     public void onBackPressed() {
-        webViewFragments.get(webViewPager.getCurrentItem()).onBackPressed();
+        activeFragmentsMap.get(webViewPager.getCurrentItem()).onBackPressed();
     }
 
     @Override
@@ -164,7 +196,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
             switch (i) {
                 case KeyEvent.KEYCODE_ENTER:
-                    webViewFragments.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
+                    activeFragmentsMap.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
                     hideKeyboard();
                     return true;
                 default:
