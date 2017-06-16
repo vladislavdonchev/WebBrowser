@@ -24,7 +24,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     private WebView webView;
     private ProgressBar webViewProgressBar;
     private WeakReference<HideKeyboardListener> hideKeyboardListener;
-    private WeakReference<BackPressedListener> backPressedListener;
+    private WeakReference<WebViewNavigationListener> navigationListener;
 
     @Nullable
     @Override
@@ -45,6 +45,14 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         return content;
     }
 
+    public String getPageTitle() {
+        if (webView == null) {
+            return "No Title";
+        } else {
+            return webView.getTitle();
+        }
+    }
+
     public void saveWebViewState(Bundle outState) {
         webView.saveState(outState);
     }
@@ -53,15 +61,16 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         this.hideKeyboardListener = new WeakReference<HideKeyboardListener>(hideKeyboardListener);
     }
 
-    public void setBackPressedListener(BackPressedListener backPressedListener) {
-        this.backPressedListener = new WeakReference<BackPressedListener>(backPressedListener);
+    public void setNavigationListener(WebViewNavigationListener webViewNavigationListener) {
+        this.navigationListener = new WeakReference<WebViewNavigationListener>(webViewNavigationListener);
     }
 
     public interface HideKeyboardListener {
         void hideKeyboard();
     }
 
-    public interface BackPressedListener {
+    public interface WebViewNavigationListener {
+        void updatePageTitle();
         void closeApp();
     }
 
@@ -75,7 +84,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         if (webView.canGoBack()) {
             webView.goBack();
         } else {
-            backPressedListener.get().closeApp();
+            navigationListener.get().closeApp();
         }
     }
 
@@ -101,6 +110,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(progress);
 
         if (progress >= 100) {
+            navigationListener.get().updatePageTitle();
             webViewProgressBar.setVisibility(View.GONE);
         }
     }
