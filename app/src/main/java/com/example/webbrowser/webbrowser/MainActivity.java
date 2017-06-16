@@ -67,6 +67,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         activeFragment.setHideKeyboardListener(this);
         activeFragment.setBackPressedListener(this);
+
+        addressBarEditText.setText("");
     }
 
     @Override
