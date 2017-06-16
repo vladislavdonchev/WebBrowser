@@ -50,6 +50,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
+        addressBarEditText.setFocusableInTouchMode(true);
 
         if (savedInstanceState != null) {
             addressBarEditText.setText(savedInstanceState.getString(Constants.ADDRESS_BAR_TEXT_KEY, ""));
@@ -69,6 +70,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         activeFragment.setBackPressedListener(this);
 
         addressBarEditText.setText("");
+        showKeyboard();
     }
 
     @Override
@@ -105,6 +107,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(addressBarEditText.getWindowToken(), 0);
+    }
+
+    public void showKeyboard() {
+        addressBarEditText.requestFocus();
+        InputMethodManager inputMethodManager = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_IMPLICIT);
     }
 
     @Override
