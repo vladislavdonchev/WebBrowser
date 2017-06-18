@@ -31,12 +31,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private Button addNewTabButton;
     private ImageButton menuButton;
     private Button goButton;
+
     private ViewPager webViewPager;
+    private WebViewPagerAdapter webViewPagerAdapter;
 
     private SparseArray<WebViewFragment> activeFragmentsMap = new SparseArray<>();
     private ArrayList<WebViewFragment> webViewFragments = new ArrayList<WebViewFragment>();
-
-    private WebViewPagerAdapter webViewPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +51,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
 
-        webViewPager.setOnPageChangeListener(this);
+        webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
+        webViewPager.setOffscreenPageLimit(5);
 
         goButton.setEnabled(false);
 
@@ -72,10 +73,18 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void addNewTab() {
+        WebViewFragment webViewFragment = new WebViewFragment();
+        webViewFragment.setHideKeyboardListener(MainActivity.this);
+        webViewFragment.setNavigationListener(MainActivity.this);
+
+        webViewFragments.add(webViewFragment);
+
         webViewPagerAdapter.notifyDataSetChanged();
-        webViewPager.setCurrentItem(activeFragmentsMap.size() - 1);
+        webViewPager.setCurrentItem(webViewFragments.size() - 1);
 
         addressBarEditText.setText("");
+
+        //TODO Why does not this work on all devices?
         showKeyboard();
         addressBarEditText.setFocusableInTouchMode(true);
         addressBarEditText.requestFocus();
@@ -104,10 +113,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         @Override
         public Fragment getItem(int position) {
-            WebViewFragment webViewFragment = new WebViewFragment();
-            webViewFragment.setHideKeyboardListener(MainActivity.this);
-            webViewFragment.setNavigationListener(MainActivity.this);
-            return webViewFragment;
+            return webViewFragments.get(position);
         }
 
         @Override
@@ -120,25 +126,24 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             return webViewFragments.get(webViewPager.getCurrentItem()).getPageTitle();
         }
 
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            WebViewFragment fragment = webViewFragments.get(position);
-            activeFragmentsMap.put(position, fragment);
-            return fragment;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            activeFragmentsMap.remove(position);
-            super.destroyItem(container, position, object);
-        }
+//        @Override
+//        public Object instantiateItem(ViewGroup container, int position) {
+//            WebViewFragment fragment = webViewFragments.get(position);
+//            activeFragmentsMap.put(position, fragment);
+//            return fragment;
+//        }
+//
+//        @Override
+//        public void destroyItem(ViewGroup container, int position, Object object) {
+//            activeFragmentsMap.remove(position);
+//            super.destroyItem(container, position, object);
+//        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Constants.ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
-        activeFragmentsMap.get(webViewPager.getCurrentItem()).saveWebViewState(outState);
     }
 
     @Override
@@ -151,7 +156,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.activity_main_go_button:
-                activeFragmentsMap.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
+                webViewFragments.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
                 break;
         }
 
@@ -160,7 +165,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     public void onBackPressed() {
-        activeFragmentsMap.get(webViewPager.getCurrentItem()).onBackPressed();
+        webViewFragments.get(webViewPager.getCurrentItem()).onBackPressed();
     }
 
     @Override
@@ -196,7 +201,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
             switch (i) {
                 case KeyEvent.KEYCODE_ENTER:
-                    activeFragmentsMap.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
+                    webViewFragments.get(webViewPager.getCurrentItem()).loadURL(addressBarEditText.getText().toString());
                     hideKeyboard();
                     return true;
                 default:

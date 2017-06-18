@@ -25,6 +25,7 @@ import java.lang.ref.WeakReference;
 public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     public static final String TAG = WebViewFragment.class.getName();
+    public static final String WEBVIEW_STATE_KEY = "webViewStateKey";
 
     private WebView webView;
     private ProgressBar webViewProgressBar;
@@ -37,14 +38,20 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         View content = inflater.inflate(R.layout.fragment_web_view, container, false);
         webView = (WebView) content.findViewById(R.id.fragment_web_view);
 
+        WebSettings wbset = webView.getSettings();
+        wbset.setJavaScriptEnabled(true);
+        webView.setWebViewClient(new MyWebViewClient());
+        webView.setWebChromeClient(new MyWebChromeClient());
+
+        webView.setOnTouchListener(this);
+
         webViewProgressBar = (ProgressBar) content.findViewById(R.id.fragment_progress_bar);
         webViewProgressBar.setMax(100);
         webViewProgressBar.setVisibility(View.GONE);
 
-        webView.setOnTouchListener(this);
-
         if (savedInstanceState != null) {
-            webView.restoreState(savedInstanceState);
+            webView.restoreState(savedInstanceState.getBundle(WEBVIEW_STATE_KEY));
+            Log.d(TAG, "restoreWebViewState");
         }
 
         return content;
@@ -111,16 +118,27 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         Log.d(TAG, "onActivityCreated");
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Bundle webViewInstanceState = new Bundle();
+        webView.saveState(webViewInstanceState);
+        outState.putBundle(WEBVIEW_STATE_KEY, webViewInstanceState);
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "saveFragmentInstanceState");
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        Log.d(TAG, "onViewStateRestored");
+    }
+
     public String getPageTitle() {
         if (webView == null) {
             return "No Title";
         } else {
             return webView.getTitle();
         }
-    }
-
-    public void saveWebViewState(Bundle outState) {
-        webView.saveState(outState);
     }
 
     public void setHideKeyboardListener(HideKeyboardListener hideKeyboardListener) {
@@ -142,7 +160,9 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        hideKeyboardListener.get().hideKeyboard();
+        if (hideKeyboardListener != null & hideKeyboardListener.get() != null) {
+            hideKeyboardListener.get().hideKeyboard();
+        }
         return false;
     }
 
@@ -150,16 +170,13 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         if (webView.canGoBack()) {
             webView.goBack();
         } else {
-            navigationListener.get().closeApp();
+            if (navigationListener != null & navigationListener.get() != null) {
+                navigationListener.get().closeApp();
+            }
         }
     }
 
     public void loadURL(String url) {
-        WebSettings wbset = webView.getSettings();
-        wbset.setJavaScriptEnabled(true);
-        webView.setWebViewClient(new MyWebViewClient());
-        webView.setWebChromeClient(new MyWebChromeClient());
-
         webView.loadUrl(formattedURL(url));
     }
 
@@ -176,7 +193,9 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(progress);
 
         if (progress >= 100) {
-            navigationListener.get().updatePageTitle();
+            if (navigationListener != null & navigationListener.get() != null) {
+                navigationListener.get().updatePageTitle();
+            }
             webViewProgressBar.setVisibility(View.GONE);
         }
     }
