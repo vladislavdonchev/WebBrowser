@@ -52,6 +52,8 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState.getBundle(WEBVIEW_STATE_KEY));
             Log.d(TAG, "restoreWebViewState");
+        } else {
+            webView.reload();
         }
 
         return content;
