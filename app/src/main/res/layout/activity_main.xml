@@ -14,28 +14,28 @@
 
         <RelativeLayout
             android:id="@+id/activity_main_menu_container"
-            android:background="#FF0000"
+            android:background="@android:color/transparent"
             android:layout_width="96dp"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true">
 
-            <ImageButton
+            <Button
                 android:id="@+id/activity_main_menu_button"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
-                android:src="@android:drawable/ic_menu_help" />
+                android:background="@android:drawable/ic_menu_help" />
 
             <Button
                 android:id="@+id/activity_main_new_tab_button"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_toLeftOf="@id/activity_main_menu_button"
-                android:text="+" />
+                android:background="@android:drawable/ic_menu_add" />
         </RelativeLayout>
 
         <RelativeLayout
-            android:background="#FFFF00"
+            android:background="@android:color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_toLeftOf="@id/activity_main_menu_container">

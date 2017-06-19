@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
@@ -34,7 +35,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
-    private ImageButton menuButton;
+    private Button menuButton;
     private Button goButton;
 
     private ViewPager webViewPager;
@@ -53,7 +54,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         addressBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
-        menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
+        menuButton = (Button) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
         webViewPager = (ViewPager) findViewById(R.id.activity_main_web_view_pager);
 
@@ -74,7 +75,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
-        webViewPager.setOffscreenPageLimit(5);
+        webViewPager.setOffscreenPageLimit(3);
 
         goButton.setEnabled(false);
 
@@ -167,6 +168,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentTags);
         for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
             if (getSupportFragmentManager().getFragment(outState, webViewFragmentEntry.getKey()) == null) {
+                if (!webViewFragmentEntry.getValue().isAdded()){
+                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.add(webViewFragmentEntry.getValue(), webViewFragmentEntry.getKey());
+                    fragmentTransaction.commit();
+                }
                 getSupportFragmentManager().putFragment(outState, webViewFragmentEntry.getKey(), webViewFragmentEntry.getValue());
             }
         }
