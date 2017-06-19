@@ -34,7 +34,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
-    private ImageButton menuButton;
+    private Button menuButton;
     private Button goButton;
 
     private ViewPager webViewPager;
@@ -53,7 +53,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         addressBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
-        menuButton = (ImageButton) findViewById(R.id.activity_main_menu_button);
+        menuButton = (Button) findViewById(R.id.activity_main_menu_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
         webViewPager = (ViewPager) findViewById(R.id.activity_main_web_view_pager);
 
