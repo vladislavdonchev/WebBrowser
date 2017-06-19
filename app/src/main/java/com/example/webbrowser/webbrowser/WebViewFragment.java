@@ -179,6 +179,8 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     }
 
     public void loadURL(String url) {
+        webViewProgressBar.setProgress(2);
+        webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
     }
 
@@ -206,9 +208,6 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            webViewProgressBar.setProgress(0);
-            webViewProgressBar.setVisibility(View.VISIBLE);
-
             return false;
         }
     }
