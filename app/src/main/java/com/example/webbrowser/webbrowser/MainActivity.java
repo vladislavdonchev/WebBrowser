@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
@@ -74,7 +75,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
-        webViewPager.setOffscreenPageLimit(5);
+        webViewPager.setOffscreenPageLimit(3);
 
         goButton.setEnabled(false);
 
@@ -162,14 +163,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putString(Constants.ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
         outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentTags);
         for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
             if (getSupportFragmentManager().getFragment(outState, webViewFragmentEntry.getKey()) == null) {
+                if (!webViewFragmentEntry.getValue().isAdded()){
+                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.add(webViewFragmentEntry.getValue(), webViewFragmentEntry.getKey());
+                    fragmentTransaction.commitNow();
+                }
                 getSupportFragmentManager().putFragment(outState, webViewFragmentEntry.getKey(), webViewFragmentEntry.getValue());
             }
         }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
