@@ -91,11 +91,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setFocusableInTouchMode(true);
     }
 
-    private void addTabs() {
-        final ActionBar actionBar = getSupportActionBar();
-
-    }
-
     private ArrayList<String> getTitles() {
         ArrayList<String> titles = new ArrayList<>();
         for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {

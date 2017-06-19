@@ -24,7 +24,7 @@
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_help" />
+                android:background="@android:drawable/ic_menu_agenda" />
 
             <Button
                 android:id="@+id/activity_main_new_tab_button"
@@ -54,6 +54,7 @@
                 android:layout_alignParentLeft="true"
                 android:inputType="textUri"
                 android:maxLines="1"
+                android:layout_marginLeft="8dp"
                 android:layout_toLeftOf="@id/activity_main_go_button" />
 
         </RelativeLayout>

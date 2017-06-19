@@ -145,7 +145,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     public String getPageTitle() {
         if (webView == null || TextUtils.isEmpty(webView.getTitle())) {
-            return "New tab";
+            return "New Tab";
         } else {
             return webView.getTitle();
         }
