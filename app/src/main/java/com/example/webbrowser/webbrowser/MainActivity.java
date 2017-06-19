@@ -10,8 +10,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -29,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener, ViewPager.OnPageChangeListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener, ViewPager.OnPageChangeListener {
 
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsStateKey";
 
@@ -87,6 +89,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
         addressBarEditText.setFocusableInTouchMode(true);
+    }
+
+    private void addTabs() {
+        final ActionBar actionBar = getSupportActionBar();
+
+    }
+
+    private ArrayList<String> getTitles() {
+        ArrayList<String> titles = new ArrayList<>();
+        for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
+            String title = ((WebViewFragment)webViewFragmentEntry.getValue()).getPageTitle();
+            titles.add(title);
+        }
+        return titles;
     }
 
     private void addNewTab() {
@@ -185,7 +201,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 addNewTab();
                 break;
             case R.id.activity_main_menu_button:
-                Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
+                tabsButtonPressed();
                 break;
             case R.id.activity_main_go_button:
                 webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
@@ -193,6 +209,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
 
         hideKeyboard();
+    }
+
+    private void tabsButtonPressed() {
+        TabsAlertDialog dialog = new TabsAlertDialog(this, getTitles());
+        dialog.show();
     }
 
     @Override
