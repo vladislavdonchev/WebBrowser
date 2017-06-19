@@ -16,17 +16,14 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener, ViewPager.OnPageChangeListener {
@@ -113,7 +110,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+        String currentFragmentURL = webViewFragments.get(webViewFragmentTags.get(position)).getFragmentURL();
+        addressBarEditText.setText(currentFragmentURL);
     }
 
     @Override
@@ -211,6 +209,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_FORCED);
+    }
+
+    @Override
+    public void webViewDidLoadURL(String url) {
+        addressBarEditText.setText(url);
     }
 
     @Override

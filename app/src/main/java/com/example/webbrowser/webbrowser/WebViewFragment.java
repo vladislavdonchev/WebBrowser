@@ -59,6 +59,13 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         return content;
     }
 
+    public String getFragmentURL() {
+        if (webView == null || webView.getUrl() == null) {
+            return "";
+        }
+        return webView.getUrl().toString();
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -158,6 +165,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     public interface WebViewNavigationListener {
         void updatePageTitle();
         void closeApp();
+        void webViewDidLoadURL(String url);
     }
 
     @Override
@@ -201,6 +209,8 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
                 navigationListener.get().updatePageTitle();
             }
             webViewProgressBar.setVisibility(View.GONE);
+
+            navigationListener.get().webViewDidLoadURL(webView.getUrl().toString());
         }
     }
 
