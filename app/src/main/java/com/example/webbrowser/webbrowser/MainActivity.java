@@ -16,6 +16,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -63,7 +64,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             if (restoredWebViewFragmentTags != null) {
                 webViewFragmentTags = restoredWebViewFragmentTags;
                 for (String webViewFragmentTag : webViewFragmentTags) {
-                    webViewFragments.put(webViewFragmentTag, (WebViewFragment) getSupportFragmentManager().getFragment(savedInstanceState, webViewFragmentTag));
+                    WebViewFragment webViewFragment = (WebViewFragment) getSupportFragmentManager().getFragment(savedInstanceState, webViewFragmentTag);
+                    webViewFragments.put(webViewFragmentTag, webViewFragment);
                 }
             }
         } else {
@@ -145,18 +147,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             return webViewFragments.get(webViewFragmentTags.get(position)).getPageTitle();
         }
 
-//        @Override
-//        public Object instantiateItem(ViewGroup container, int position) {
-//            WebViewFragment fragment = webViewFragments.get(position);
-//            activeFragmentsMap.put(position, fragment);
-//            return fragment;
-//        }
-//
-//        @Override
-//        public void destroyItem(ViewGroup container, int position, Object object) {
-//            activeFragmentsMap.remove(position);
-//            super.destroyItem(container, position, object);
-//        }
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            try {
+                return super.instantiateItem(container, position);
+            } catch (Exception e) {
+                return getItem(position);
+            }
+        }
     }
 
     @Override
@@ -165,7 +163,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentTags);
         for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
             if (getSupportFragmentManager().getFragment(outState, webViewFragmentEntry.getKey()) == null) {
-                if (!webViewFragmentEntry.getValue().isAdded()){
+                if (!webViewFragmentEntry.getValue().isAdded()) {
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                     fragmentTransaction.add(webViewFragmentEntry.getValue(), webViewFragmentEntry.getKey());
                     fragmentTransaction.commitNow();
