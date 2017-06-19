@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -143,8 +144,8 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     }
 
     public String getPageTitle() {
-        if (webView == null) {
-            return "No Title";
+        if (webView == null || TextUtils.isEmpty(webView.getTitle())) {
+            return "New tab";
         } else {
             return webView.getTitle();
         }
