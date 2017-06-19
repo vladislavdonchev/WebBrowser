@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -86,6 +87,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
         addressBarEditText.setFocusableInTouchMode(true);
+    }
+
+    private void addTabs() {
+        final ActionBar actionBar = getSupportActionBar();
+
+    }
+
+    private ArrayList<String> getTitles() {
+        ArrayList<String> titles = new ArrayList<>();
+        for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
+            String title = ((WebViewFragment)webViewFragmentEntry.getValue()).getPageTitle();
+            titles.add(title);
+        }
+        return titles;
     }
 
     private void addNewTab() {
@@ -191,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 addNewTab();
                 break;
             case R.id.activity_main_menu_button:
-                Toast.makeText(this, "Menu button clicked", Toast.LENGTH_SHORT).show();
+                tabsButtonPressed();
                 break;
             case R.id.activity_main_go_button:
                 webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
@@ -199,6 +214,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         hideKeyboard();
+    }
+
+    private void tabsButtonPressed() {
+        TabsAlertDialog dialog = new TabsAlertDialog(this, getTitles());
+        dialog.show();
     }
 
     @Override
