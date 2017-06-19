@@ -2,6 +2,8 @@ package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -74,7 +76,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
-        webViewPager.setOffscreenPageLimit(3);
+        webViewPager.setOffscreenPageLimit(1);
 
         goButton.setEnabled(false);
 
@@ -149,20 +151,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            try {
-                return super.instantiateItem(container, position);
-            } catch (Exception e) {
-                return getItem(position);
+            WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentTags.get(position));
+            if (webViewFragment.isAdded()) {
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.remove(webViewFragment);
+                fragmentTransaction.commitNow();
             }
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            try {
-                super.destroyItem(container, position, object);
-            } catch (Exception e) {
-
-            }
+            return super.instantiateItem(container, position);
         }
     }
 
