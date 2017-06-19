@@ -155,6 +155,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 return getItem(position);
             }
         }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            try {
+                super.destroyItem(container, position, object);
+            } catch (Exception e) {
+
+            }
+        }
     }
 
     @Override
