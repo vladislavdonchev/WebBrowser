@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void selectTab(int tabToSelect) {
         Toast.makeText(this, "Tab selected: " + tabToSelect, Toast.LENGTH_SHORT).show();
+        webViewPager.setCurrentItem(tabToSelect);
     }
 
     @Override
@@ -149,10 +150,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ArrayList<String> getTitles() {
         ArrayList<String> titles = new ArrayList<>();
-        for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
-            String title = ((WebViewFragment)webViewFragmentEntry.getValue()).getPageTitle();
+//
+        for (String tag: webViewFragmentTags) {
+            WebViewFragment fragment = webViewFragments.get(tag);
+            String title = fragment.getPageTitle();
             titles.add(title);
         }
+
         return titles;
     }
 
