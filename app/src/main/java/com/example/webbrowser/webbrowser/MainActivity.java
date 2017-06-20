@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -29,7 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener {
 
     public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsStateKey";
@@ -50,7 +53,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private HashMap<String, Bundle> restoredWebViewStates = new HashMap<>();
     private HashMap<String, String> webPageTitles = new HashMap<>();
 
+    private NetworkStateReceiver networkStateReceiver;
+    private AlertDialog wifiStatusDialog;
+
     private WebViewFragmentBroadcastReceiver webViewReceiver;
+
+    @Override
+    public void networkAvailable() {
+        if (wifiStatusDialog != null && wifiStatusDialog.isShowing()) {
+            wifiStatusDialog.hide();
+        }
+
+        //TODO We need to make sure that this is an user-friendly behavior.
+        getCurrentFragment().reload();
+    }
+
+    @Override
+    public void networkUnavailable() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("WIFI Unavailable");
+
+        alertDialogBuilder
+                .setMessage("Do you want to enable WIFI ?")
+                .setCancelable(false)
+                .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
+                    }
+                })
+                .setNegativeButton("Cancel", null);
+
+        wifiStatusDialog = alertDialogBuilder.create();
+
+        wifiStatusDialog.show();
+    }
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
 
@@ -76,6 +112,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
             }
         }
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+        return isConnected;
     }
 
     private void selectTab(int tabToSelect) {
@@ -139,6 +184,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
+        if (!isConnected()) {
+            networkUnavailable();
+        }
+
+        registerNetworkReceiver();
         registerWebViewReceiver();
     }
 
@@ -146,7 +196,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         super.onPause();
 
+        unregisterNetworkReceiver();
         unregisterWebViewReceiver();
+    }
+
+    private void unregisterNetworkReceiver() {
+        unregisterReceiver(networkStateReceiver);
     }
 
     private void registerWebViewReceiver() {
@@ -157,6 +212,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         filter.addAction(Constants.TAB_SELECTED_ACTION);
 
         registerReceiver(webViewReceiver, filter);
+    }
+
+    private void registerNetworkReceiver() {
+        networkStateReceiver = new NetworkStateReceiver();
+        networkStateReceiver.addListener(this);
+        registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     private void unregisterWebViewReceiver() {
@@ -301,6 +362,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             webPageTitlesList.add(webPageTitles.get(webViewFragmentUid));
         }
         return webPageTitlesList;
+    }
+
+    private WebViewFragment getCurrentFragment() {
+        int position = webViewPager.getCurrentItem();
+        String uid = webViewFragmentUids.get(position);
+
+        return webViewFragments.get(uid);
     }
 
     @Override

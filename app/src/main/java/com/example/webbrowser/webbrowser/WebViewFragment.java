@@ -153,6 +153,16 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         Log.d(WebViewFragment.class.getName(), "Loading url: " + url);
     }
 
+    public void reload() {
+        if (webView == null || webView.getUrl() == null) {
+            return;
+        }
+
+        webViewProgressBar.setProgress(2);
+        webViewProgressBar.setVisibility(View.VISIBLE);
+        webView.reload();
+    }
+
     private String formattedURL(String input) {
         String formattedURL = input.toLowerCase();
         if (!formattedURL.startsWith("http://") && !formattedURL.startsWith("https://")) {
