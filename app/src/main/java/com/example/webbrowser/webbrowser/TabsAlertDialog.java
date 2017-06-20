@@ -44,7 +44,7 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
 
         setView(layout);
 
-        setTitle("Tabs");
+        setTitle("Open Tabs");
         setButton(AlertDialog.BUTTON_NEGATIVE, "Close", (OnClickListener) null);
     }
 

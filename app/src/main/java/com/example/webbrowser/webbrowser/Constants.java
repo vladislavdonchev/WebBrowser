@@ -12,4 +12,5 @@ public class Constants {
     public static final String TAB_SELECTED_ACTION = "com.webBrowser.tabSelected";
     public static final String WEB_VIEW_FRAGMENT_URL_KEY = "urlKey";
     public static final String SELECTED_TAB_KEY = "selectedTabKey";
+    public static final String WEB_VIEW_FRAGMENT_TAG = "TAG";
 }

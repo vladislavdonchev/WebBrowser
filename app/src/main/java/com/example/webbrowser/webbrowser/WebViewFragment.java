@@ -25,6 +25,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     public static final String TAG = WebViewFragment.class.getName();
     public static final String WEBVIEW_STATE_KEY = "webViewStateKey";
+   ;
 
     private WebView webView;
     private ProgressBar webViewProgressBar;
@@ -198,7 +199,9 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
             webViewProgressBar.setVisibility(View.GONE);
 
             Intent didLoadIntent = new Intent(Constants.WEB_VIEW_DID_LOAD_ACTION);
+
             didLoadIntent.putExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY, webView.getUrl().toString());
+            didLoadIntent.putExtra(Constants.WEB_VIEW_FRAGMENT_TAG, getTag());
             getContext().sendBroadcast(didLoadIntent);
         }
     }
@@ -216,7 +219,10 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
             super.onProgressChanged(view, newProgress);
-            updateProgressBar(newProgress);
+
+            if (getContext() != null) {
+                updateProgressBar(newProgress);
+            }
         }
     }
 }

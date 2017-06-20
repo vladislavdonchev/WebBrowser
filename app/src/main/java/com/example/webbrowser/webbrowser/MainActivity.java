@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button addNewTabButton;
     private Button menuButton;
     private Button goButton;
+    private TextView tabsCounter;
 
     private ViewPager webViewPager;
     private WebViewPagerAdapter webViewPagerAdapter;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ArrayList<String> webViewFragmentTags = new ArrayList<>();
     private HashMap<String, WebViewFragment> webViewFragments = new HashMap<>();
+    private HashMap<String, Fragment.SavedState> savedFragmentStates = new HashMap<>();
 
     private NetworkStateReceiver networkStateReceiver;
 
@@ -99,7 +102,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case Constants.WEB_VIEW_DID_LOAD_ACTION:
                     String url = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY);
-                    webViewDidLoadURL(url);
+                    String tag = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_TAG);
+                    webViewDidLoadURL(tag, url);
                     break;
                 case Constants.TAB_SELECTED_ACTION:
                     selectTab(intent.getIntExtra(Constants.SELECTED_TAB_KEY, 0));
@@ -129,9 +133,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         addressBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
         addNewTabButton = (Button) findViewById(R.id.activity_main_new_tab_button);
-        menuButton = (Button) findViewById(R.id.activity_main_menu_button);
+        menuButton = (Button) findViewById(R.id.activity_open_tabs_button);
         goButton = (Button) findViewById(R.id.activity_main_go_button);
         webViewPager = (ViewPager) findViewById(R.id.activity_main_web_view_pager);
+        tabsCounter = (TextView) findViewById(R.id.activity_main_tabs_counter);
 
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
 
@@ -144,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     WebViewFragment webViewFragment = (WebViewFragment) getSupportFragmentManager().getFragment(savedInstanceState, webViewFragmentTag);
                     webViewFragments.put(webViewFragmentTag, webViewFragment);
                 }
+
+                tabsCounter.setText(String.valueOf(webViewFragments.size()));
             }
         } else {
             addNewTab();
@@ -211,11 +218,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ArrayList<String> getTitles() {
         ArrayList<String> titles = new ArrayList<>();
-//
+
         for (String tag: webViewFragmentTags) {
             WebViewFragment fragment = webViewFragments.get(tag);
             String title = fragment.getPageTitle();
             titles.add(title);
+            Log.i("TITLES", "Tab title - " + title);
         }
 
         return titles;
@@ -226,6 +234,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Generate an unique key for each fragment.
         String uid = UUID.randomUUID().toString();
+
+        //Attention: black magic over here - TAG key is being set,
+        //coincodecially or not, the same as the field being set by fragment manager
+        Bundle tagBundle = new Bundle();
+        tagBundle.putString(Constants.WEB_VIEW_FRAGMENT_TAG, uid);
+        webViewFragment.setArguments(tagBundle);
+
         Log.d(MainActivity.class.getName(), "addingNewtab: " + uid);
 
         webViewFragmentTags.add(uid);
@@ -233,6 +248,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewPagerAdapter.notifyDataSetChanged();
         webViewPager.setCurrentItem(webViewFragments.size() - 1);
+
+        tabsCounter.setText(String.valueOf(webViewFragments.size()));
 
         addressBarEditText.setText("");
 
@@ -266,6 +283,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public Fragment getItem(int position) {
+            Log.d(WebViewFragment.class.getName(), "getItem: " + webViewFragmentTags.get(position));
             return webViewFragments.get(webViewFragmentTags.get(position));
         }
 
@@ -283,10 +301,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public Object instantiateItem(ViewGroup container, int position) {
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentTags.get(position));
             if (webViewFragment.isAdded()) {
+                Log.d(WebViewFragment.class.getName(), "Fragment already added, removing: " + webViewFragmentTags.get(position));
                 FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.remove(webViewFragment);
                 fragmentTransaction.commitNow();
             }
+            Log.d(WebViewFragment.class.getName(), "Instantiating: " + webViewFragmentTags.get(position));
+
             return super.instantiateItem(container, position);
         }
     }
@@ -301,6 +322,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                     fragmentTransaction.add(webViewFragmentEntry.getValue(), webViewFragmentEntry.getKey());
                     fragmentTransaction.commitNow();
+
+                    Log.d(WebViewFragment.class.getName(), "Fragment not added, adding: " + webViewFragmentEntry.getKey());
                 }
                 getSupportFragmentManager().putFragment(outState, webViewFragmentEntry.getKey(), webViewFragmentEntry.getValue());
             }
@@ -314,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.activity_main_new_tab_button:
                 addNewTab();
                 break;
-            case R.id.activity_main_menu_button:
+            case R.id.activity_open_tabs_button:
                 tabsButtonPressed();
                 break;
             case R.id.activity_main_go_button:
@@ -358,8 +381,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_FORCED);
     }
 
-    public void webViewDidLoadURL(String url) {
-        addressBarEditText.setText(url);
+    public void webViewDidLoadURL(String fragmentTag, String url) {
+        if (webViewFragmentTags.get(webViewPager.getCurrentItem()).equals(fragmentTag)) {
+            addressBarEditText.setText(url);
+        }
     }
 
     @Override
