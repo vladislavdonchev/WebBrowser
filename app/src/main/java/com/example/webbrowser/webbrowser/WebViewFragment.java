@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,12 +22,13 @@ import android.widget.ProgressBar;
 
 public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
-    public static final String TAG = WebViewFragment.class.getName();
+    public static final String LOG_TAG = WebViewFragment.class.getName();
     public static final String WEBVIEW_STATE_KEY = "webViewStateKey";
-   ;
 
     private WebView webView;
     private ProgressBar webViewProgressBar;
+    private Bundle webViewState;
+    private String uid;
 
     @Nullable
     @Override
@@ -42,17 +42,13 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webView.setWebChromeClient(new MyWebChromeClient());
 
         webView.setOnTouchListener(this);
+        if (webViewState != null) {
+            webView.restoreState(webViewState);
+        }
 
         webViewProgressBar = (ProgressBar) content.findViewById(R.id.fragment_progress_bar);
         webViewProgressBar.setMax(100);
         webViewProgressBar.setVisibility(View.GONE);
-
-        if (savedInstanceState != null) {
-            webView.restoreState(savedInstanceState.getBundle(WEBVIEW_STATE_KEY));
-            Log.d(TAG, "restoreWebViewState");
-        } else {
-            webView.reload();
-        }
 
         return content;
     }
@@ -67,62 +63,55 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.d(TAG, "onAttach");
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-        Log.d(TAG, "onCreate");
+        Log.d(LOG_TAG, "onAttach");
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(TAG, "onStart");
+        Log.d(LOG_TAG, "onStart");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Log.d(LOG_TAG, "onResume");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause");
+        Log.d(LOG_TAG, "onPause");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(TAG, "onStop");
+        Log.d(LOG_TAG, "onStop");
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView");
+        Log.d(LOG_TAG, "onDestroyView");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy");
+        Log.d(LOG_TAG, "onDestroy");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d(TAG, "onDetach");
+        Log.d(LOG_TAG, "onDetach");
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(TAG, "onActivityCreated");
+        Log.d(LOG_TAG, "onActivityCreated");
     }
 
     @Override
@@ -131,21 +120,13 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webView.saveState(webViewInstanceState);
         outState.putBundle(WEBVIEW_STATE_KEY, webViewInstanceState);
         super.onSaveInstanceState(outState);
-        Log.d(TAG, "saveFragmentInstanceState");
+        Log.d(LOG_TAG, "saveFragmentInstanceState");
     }
 
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        Log.d(TAG, "onViewStateRestored");
-    }
-
-    public String getPageTitle() {
-        if (webView == null || TextUtils.isEmpty(webView.getTitle())) {
-            return "New Tab";
-        } else {
-            return webView.getTitle();
-        }
+        Log.d(LOG_TAG, "onViewStateRestored");
     }
 
     @Override
@@ -169,6 +150,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(2);
         webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
+        Log.d(WebViewFragment.class.getName(), "Loading url: " + url);
     }
 
     private String formattedURL(String input) {
@@ -183,17 +165,35 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(progress);
 
         if (progress >= 100) {
-            Intent intent = new Intent(Constants.UPDATE_PAGE_TITLE_ACTION);
-            getContext().sendBroadcast(intent);
+            Log.d(LOG_TAG, "URL load finished.");
 
             webViewProgressBar.setVisibility(View.GONE);
 
-            Intent didLoadIntent = new Intent(Constants.WEB_VIEW_DID_LOAD_ACTION);
+            Intent pageLoadedIntent = new Intent(Constants.WEB_PAGE_LOADED_ACTION);
+            pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_TITLE_KEY, webView.getTitle());
+            pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY, webView.getUrl().toString());
+            pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_UID, uid);
 
-            didLoadIntent.putExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY, webView.getUrl().toString());
-            didLoadIntent.putExtra(Constants.WEB_VIEW_FRAGMENT_TAG, getTag());
-            getContext().sendBroadcast(didLoadIntent);
+            getContext().sendBroadcast(pageLoadedIntent);
         }
+    }
+
+    public void setWebViewState(Bundle webViewState) {
+        this.webViewState = webViewState;
+    }
+
+    public Bundle getWebViewState() {
+        Bundle webViewState = new Bundle();
+        webView.saveState(webViewState);
+        return webViewState;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     private class MyWebViewClient extends WebViewClient {

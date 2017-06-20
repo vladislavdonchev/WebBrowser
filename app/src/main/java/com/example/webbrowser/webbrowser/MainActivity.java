@@ -14,9 +14,9 @@ import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,15 +25,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener {
 
+    public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsStateKey";
+    public static final String WEB_PAGE_TITLES_KEY = "webPageTitlesKey";
+    public static final String WEBVIEW_STATES_STATE_KEY = "webviewStatesStateKey";
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -44,13 +45,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ViewPager webViewPager;
     private WebViewPagerAdapter webViewPagerAdapter;
 
-    private ArrayList<String> webViewFragmentTags = new ArrayList<>();
+    private ArrayList<String> webViewFragmentUids = new ArrayList<>();
     private HashMap<String, WebViewFragment> webViewFragments = new HashMap<>();
-    private HashMap<String, Fragment.SavedState> savedFragmentStates = new HashMap<>();
+    private HashMap<String, Bundle> restoredWebViewStates = new HashMap<>();
+    private HashMap<String, String> webPageTitles = new HashMap<>();
 
-    //This is not ne
-    // eded for now as we do not care which fragments are active.
-    private SparseArray<WebViewFragment> activeFragmentsMap = new SparseArray<>();
     private WebViewFragmentBroadcastReceiver webViewReceiver;
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
@@ -61,13 +60,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case Constants.HIDE_KEYBOARD_ACTION:
                     hideKeyboard();
                     break;
-                case Constants.UPDATE_PAGE_TITLE_ACTION:
-                    updatePageTitle();
-                    break;
-                case Constants.WEB_VIEW_DID_LOAD_ACTION:
-                    String url = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY);
-                    String tag = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_TAG);
-                    webViewDidLoadURL(tag, url);
+                case Constants.WEB_PAGE_LOADED_ACTION:
+                    String title = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_TITLE_KEY);
+                    String url = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY);
+                    String uid = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_UID);
+
+                    Log.d(WebViewFragment.class.getName(), "URL load recevied: " + uid + " " + title + " " + url);
+
+                    webPageTitles.put(uid, title);
+                    webViewPagerAdapter.notifyDataSetChanged();
+                    urlLoaded(uid, url);
                     break;
                 case Constants.TAB_SELECTED_ACTION:
                     selectTab(intent.getIntExtra(Constants.SELECTED_TAB_KEY, 0));
@@ -77,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void selectTab(int tabToSelect) {
-        Toast.makeText(this, "Tab selected: " + tabToSelect, Toast.LENGTH_SHORT).show();
         webViewPager.setCurrentItem(tabToSelect);
     }
 
@@ -96,15 +97,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
 
         if (savedInstanceState != null) {
-            addressBarEditText.setText(savedInstanceState.getString(Constants.ADDRESS_BAR_TEXT_KEY, ""));
-            ArrayList<String> restoredWebViewFragmentTags = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
-            if (restoredWebViewFragmentTags != null) {
-                webViewFragmentTags = restoredWebViewFragmentTags;
-                for (String webViewFragmentTag : webViewFragmentTags) {
-                    WebViewFragment webViewFragment = (WebViewFragment) getSupportFragmentManager().getFragment(savedInstanceState, webViewFragmentTag);
-                    webViewFragments.put(webViewFragmentTag, webViewFragment);
-                }
+            addressBarEditText.setText(savedInstanceState.getString(ADDRESS_BAR_TEXT_KEY, ""));
+            ArrayList<String> restoredWebViewFragmentUids = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
+            ArrayList<Bundle> restoredWebViewStates = savedInstanceState.getParcelableArrayList(WEBVIEW_STATES_STATE_KEY);
+            ArrayList<String> restoredWebPageTitles = savedInstanceState.getStringArrayList(WEB_PAGE_TITLES_KEY);
 
+            if (restoredWebViewFragmentUids != null) {
+                webViewFragmentUids = restoredWebViewFragmentUids;
+                for (int i = 0; i < restoredWebViewFragmentUids.size(); i++) {
+                    String uid = restoredWebViewFragmentUids.get(i);
+                    WebViewFragment webViewFragment = new WebViewFragment();
+
+                    webViewFragment.setUid(uid);
+
+                    this.restoredWebViewStates.put(uid, restoredWebViewStates.get(i));
+                    webViewFragments.put(uid, webViewFragment);
+                    webPageTitles.put(uid, restoredWebPageTitles.get(i));
+                }
                 tabsCounter.setText(String.valueOf(webViewFragments.size()));
             }
         } else {
@@ -113,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
-        webViewPager.setOffscreenPageLimit(1);
+        webViewPager.setOffscreenPageLimit(3);
 
         goButton.setEnabled(false);
 
@@ -144,8 +153,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewReceiver = new WebViewFragmentBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.HIDE_KEYBOARD_ACTION);
-        filter.addAction(Constants.UPDATE_PAGE_TITLE_ACTION);
-        filter.addAction(Constants.WEB_VIEW_DID_LOAD_ACTION);
+        filter.addAction(Constants.WEB_PAGE_LOADED_ACTION);
         filter.addAction(Constants.TAB_SELECTED_ACTION);
 
         registerReceiver(webViewReceiver, filter);
@@ -155,34 +163,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         unregisterReceiver(webViewReceiver);
     }
 
-    private ArrayList<String> getTitles() {
-        ArrayList<String> titles = new ArrayList<>();
-
-        for (String tag: webViewFragmentTags) {
-            WebViewFragment fragment = webViewFragments.get(tag);
-            String title = fragment.getPageTitle();
-            titles.add(title);
-            Log.i("TITLES", "Tab title - " + title);
-        }
-
-        return titles;
-    }
-
     private void addNewTab() {
         WebViewFragment webViewFragment = new WebViewFragment();
 
         //Generate an unique key for each fragment.
         String uid = UUID.randomUUID().toString();
 
-        //Attention: black magic over here - TAG key is being set,
-        //coincodecially or not, the same as the field being set by fragment manager
-        Bundle tagBundle = new Bundle();
-        tagBundle.putString(Constants.WEB_VIEW_FRAGMENT_TAG, uid);
-        webViewFragment.setArguments(tagBundle);
+        webViewFragment.setUid(uid);
 
         Log.d(MainActivity.class.getName(), "addingNewtab: " + uid);
 
-        webViewFragmentTags.add(uid);
+        webViewFragmentUids.add(uid);
         webViewFragments.put(uid, webViewFragment);
 
         webViewPagerAdapter.notifyDataSetChanged();
@@ -200,13 +191,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        String currentFragmentURL = webViewFragments.get(webViewFragmentTags.get(position)).getFragmentURL();
+        String currentFragmentURL = webViewFragments.get(webViewFragmentUids.get(position)).getFragmentURL();
         addressBarEditText.setText(currentFragmentURL);
     }
 
     @Override
     public void onPageSelected(int position) {
-        Log.d(WebViewFragment.TAG, String.valueOf(position));
+        Log.d(WebViewFragment.LOG_TAG, String.valueOf(position));
     }
 
     @Override
@@ -222,8 +213,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public Fragment getItem(int position) {
-            Log.d(WebViewFragment.class.getName(), "getItem: " + webViewFragmentTags.get(position));
-            return webViewFragments.get(webViewFragmentTags.get(position));
+            Log.d(WebViewFragment.class.getName(), "getItem: " + webViewFragmentUids.get(position));
+            WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentUids.get(position));
+            return webViewFragment;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            String title = "New Tab";
+            String loadedTitle = webPageTitles.get(webViewFragmentUids.get(position));
+            if (!TextUtils.isEmpty(loadedTitle)) {
+                title = loadedTitle;
+            }
+            return title;
         }
 
         @Override
@@ -232,41 +234,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public CharSequence getPageTitle(int position) {
-            return webViewFragments.get(webViewFragmentTags.get(position)).getPageTitle();
+        public Object instantiateItem(ViewGroup container, int position) {
+            WebViewFragment webViewFragment = (WebViewFragment) super.instantiateItem(container, position);
+            if (restoredWebViewStates.containsKey(webViewFragmentUids.get(position))) {
+                webViewFragment.setWebViewState(restoredWebViewStates.get(webViewFragmentUids.get(position)));
+                restoredWebViewStates.remove(webViewFragmentUids.get(position));
+            }
+            return webViewFragment;
         }
 
         @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentTags.get(position));
-            if (webViewFragment.isAdded()) {
-                Log.d(WebViewFragment.class.getName(), "Fragment already added, removing: " + webViewFragmentTags.get(position));
-                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.remove(webViewFragment);
-                fragmentTransaction.commitNow();
-            }
-            Log.d(WebViewFragment.class.getName(), "Instantiating: " + webViewFragmentTags.get(position));
-
-            return super.instantiateItem(container, position);
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            WebViewFragment webViewFragment = (WebViewFragment) object;
+            restoredWebViewStates.put(webViewFragmentUids.get(position), webViewFragment.getWebViewState());
+            super.destroyItem(container, position, object);
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putString(Constants.ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
-        outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentTags);
-        for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
-            if (getSupportFragmentManager().getFragment(outState, webViewFragmentEntry.getKey()) == null) {
-                if (!webViewFragmentEntry.getValue().isAdded()) {
-                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    fragmentTransaction.add(webViewFragmentEntry.getValue(), webViewFragmentEntry.getKey());
-                    fragmentTransaction.commitNow();
+        outState.putString(ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
+        outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentUids);
+        ArrayList<Bundle> savedWebViewtStates = new ArrayList<>();
+        ArrayList<String> webPageTitlesList = new ArrayList<>();
+        for (String webViewFragmentKey : webViewFragmentUids) {
+            WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
+            savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
+            webPageTitlesList.add(webPageTitles.get(webViewFragmentKey));
 
-                    Log.d(WebViewFragment.class.getName(), "Fragment not added, adding: " + webViewFragmentEntry.getKey());
-                }
-                getSupportFragmentManager().putFragment(outState, webViewFragmentEntry.getKey(), webViewFragmentEntry.getValue());
-            }
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.remove(webViewFragment);
+            fragmentTransaction.commitNow();
+
+            webViewFragments.remove(webViewFragmentKey);
         }
+        outState.putStringArrayList(WEB_PAGE_TITLES_KEY, webPageTitlesList);
+        outState.putParcelableArrayList(WEBVIEW_STATES_STATE_KEY, savedWebViewtStates);
         super.onSaveInstanceState(outState);
     }
 
@@ -280,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 tabsButtonPressed();
                 break;
             case R.id.activity_main_go_button:
-                webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
+                webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
                 break;
         }
 
@@ -288,13 +291,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void tabsButtonPressed() {
-        TabsAlertDialog dialog = new TabsAlertDialog(this, getTitles());
+        TabsAlertDialog dialog = new TabsAlertDialog(this, getWebPageTitlesList());
         dialog.show();
+    }
+
+    private ArrayList<String> getWebPageTitlesList() {
+        ArrayList<String> webPageTitlesList = new ArrayList<>();
+        for (String webViewFragmentUid : webViewFragmentUids) {
+            webPageTitlesList.add(webPageTitles.get(webViewFragmentUid));
+        }
+        return webPageTitlesList;
     }
 
     @Override
     public void onBackPressed() {
-        boolean canGoBack = webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).onBackPressed();
+        boolean canGoBack = webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).onBackPressed();
 
         if (!canGoBack) {
             closeApp();
@@ -313,8 +324,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_FORCED);
     }
 
-    public void webViewDidLoadURL(String fragmentTag, String url) {
-        if (webViewFragmentTags.get(webViewPager.getCurrentItem()).equals(fragmentTag)) {
+    public void urlLoaded(String fragmentUid, String url) {
+        if (webViewFragmentUids.get(webViewPager.getCurrentItem()).equals(fragmentUid)) {
             addressBarEditText.setText(url);
         }
     }
@@ -339,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
             switch (i) {
                 case KeyEvent.KEYCODE_ENTER:
-                    webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
+                    webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(addressBarEditText.getText().toString());
                     hideKeyboard();
                     return true;
                 default:
