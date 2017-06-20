@@ -1,9 +1,9 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringDef;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -17,8 +17,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import java.lang.ref.WeakReference;
-
 /**
  * Created by Asus on 6/15/2017.
  */
@@ -30,8 +28,6 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     private WebView webView;
     private ProgressBar webViewProgressBar;
-    private WeakReference<HideKeyboardListener> hideKeyboardListener;
-    private WeakReference<WebViewNavigationListener> navigationListener;
 
     @Nullable
     @Override
@@ -151,40 +147,21 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
-    public void setHideKeyboardListener(HideKeyboardListener hideKeyboardListener) {
-        this.hideKeyboardListener = new WeakReference<HideKeyboardListener>(hideKeyboardListener);
-    }
-
-    public void setNavigationListener(WebViewNavigationListener webViewNavigationListener) {
-        this.navigationListener = new WeakReference<WebViewNavigationListener>(webViewNavigationListener);
-    }
-
-    public interface HideKeyboardListener {
-        void hideKeyboard();
-    }
-
-    public interface WebViewNavigationListener {
-        void updatePageTitle();
-        void closeApp();
-        void webViewDidLoadURL(String url);
-    }
-
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (hideKeyboardListener != null & hideKeyboardListener.get() != null) {
-            hideKeyboardListener.get().hideKeyboard();
-        }
+        Intent intent = new Intent(Constants.HIDE_KEYBOARD_ACTION);
+        getContext().sendBroadcast(intent);
+
         return false;
     }
 
-    public void onBackPressed() {
+    public boolean onBackPressed() {
         if (webView.canGoBack()) {
             webView.goBack();
-        } else {
-            if (navigationListener != null & navigationListener.get() != null) {
-                navigationListener.get().closeApp();
-            }
+            return true;
         }
+
+        return false;
     }
 
     public void loadURL(String url) {
@@ -192,7 +169,6 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
     }
-
 
     private String formattedURL(String input) {
         String formattedURL = input.toLowerCase();
@@ -206,12 +182,14 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(progress);
 
         if (progress >= 100) {
-            if (navigationListener != null & navigationListener.get() != null) {
-                navigationListener.get().updatePageTitle();
-            }
+            Intent intent = new Intent(Constants.UPDATE_PAGE_TITLE_ACTION);
+            getContext().sendBroadcast(intent);
+
             webViewProgressBar.setVisibility(View.GONE);
 
-            navigationListener.get().webViewDidLoadURL(webView.getUrl().toString());
+            Intent didLoadIntent = new Intent(Constants.WEB_VIEW_DID_LOAD_ACTION);
+            didLoadIntent.putExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY, webView.getUrl().toString());
+            getContext().sendBroadcast(didLoadIntent);
         }
     }
 

@@ -1,16 +1,15 @@
 package com.example.webbrowser.webbrowser;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -24,14 +23,13 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, WebViewFragment.HideKeyboardListener, WebViewFragment.WebViewNavigationListener, View.OnKeyListener, ViewPager.OnPageChangeListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener {
 
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsStateKey";
 
@@ -46,8 +44,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<String> webViewFragmentTags = new ArrayList<>();
     private HashMap<String, WebViewFragment> webViewFragments = new HashMap<>();
 
-    //This is not needed for now as we do not care which fragments are active.
+    //This is not ne
+    // eded for now as we do not care which fragments are active.
     private SparseArray<WebViewFragment> activeFragmentsMap = new SparseArray<>();
+    private WebViewFragmentBroadcastReceiver webViewReceiver;
+
+    public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Constants.HIDE_KEYBOARD_ACTION:
+                    hideKeyboard();
+                    break;
+                case Constants.UPDATE_PAGE_TITLE_ACTION:
+                    updatePageTitle();
+                    break;
+                case Constants.WEB_VIEW_DID_LOAD_ACTION:
+                    String url = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY);
+                    webViewDidLoadURL(url);
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +110,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setFocusableInTouchMode(true);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        registerWebViewReceiver();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        unregisterWebViewReceiver();
+    }
+
+    private void registerWebViewReceiver() {
+        webViewReceiver = new WebViewFragmentBroadcastReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.HIDE_KEYBOARD_ACTION);
+        filter.addAction(Constants.UPDATE_PAGE_TITLE_ACTION);
+        filter.addAction(Constants.WEB_VIEW_DID_LOAD_ACTION);
+
+        registerReceiver(webViewReceiver, filter);
+    }
+
+    private void unregisterWebViewReceiver() {
+        unregisterReceiver(webViewReceiver);
+    }
+
     private ArrayList<String> getTitles() {
         ArrayList<String> titles = new ArrayList<>();
         for (Map.Entry<String, WebViewFragment> webViewFragmentEntry : webViewFragments.entrySet()) {
@@ -102,8 +149,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void addNewTab() {
         WebViewFragment webViewFragment = new WebViewFragment();
-        webViewFragment.setHideKeyboardListener(MainActivity.this);
-        webViewFragment.setNavigationListener(MainActivity.this);
 
         //Generate an unique key for each fragment.
         String uid = UUID.randomUUID().toString();
@@ -213,10 +258,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onBackPressed() {
-        webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).onBackPressed();
+        boolean canGoBack = webViewFragments.get(webViewFragmentTags.get(webViewPager.getCurrentItem())).onBackPressed();
+
+        if (!canGoBack) {
+            closeApp();
+        }
     }
 
-    @Override
     public void hideKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
@@ -229,7 +277,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputMethodManager.showSoftInput(addressBarEditText, InputMethodManager.SHOW_FORCED);
     }
 
-    @Override
     public void webViewDidLoadURL(String url) {
         addressBarEditText.setText(url);
     }
@@ -265,12 +312,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
-    @Override
     public void updatePageTitle() {
         webViewPagerAdapter.notifyDataSetChanged();
     }
 
-    @Override
     public void closeApp() {
         new AlertDialog.Builder(this)
                 .setMessage("Are you sure you want to exit?")
