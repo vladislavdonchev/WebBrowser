@@ -50,7 +50,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
             webView.restoreState(savedInstanceState.getBundle(WEBVIEW_STATE_KEY));
             Log.d(TAG, "restoreWebViewState");
         } else {
-            webView.reload();
+            reload();
         }
 
         return content;
@@ -168,6 +168,16 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
         webViewProgressBar.setProgress(2);
         webViewProgressBar.setVisibility(View.VISIBLE);
         webView.loadUrl(formattedURL(url));
+    }
+
+    public void reload() {
+        if (webView == null || webView.getUrl() == null) {
+            return;
+        }
+
+        webViewProgressBar.setProgress(2);
+        webViewProgressBar.setVisibility(View.VISIBLE);
+        webView.reload();
     }
 
     private String formattedURL(String input) {
