@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,9 +65,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String url = intent.getStringExtra(Constants.WEB_VIEW_FRAGMENT_URL_KEY);
                     webViewDidLoadURL(url);
                     break;
+                case Constants.TAB_SELECTED_ACTION:
+                    selectTab(intent.getIntExtra(Constants.SELECTED_TAB_KEY, 0));
+                    break;
             }
         }
-    };
+    }
+
+    private void selectTab(int tabToSelect) {
+        Toast.makeText(this, "Tab selected: " + tabToSelect, Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         filter.addAction(Constants.HIDE_KEYBOARD_ACTION);
         filter.addAction(Constants.UPDATE_PAGE_TITLE_ACTION);
         filter.addAction(Constants.WEB_VIEW_DID_LOAD_ACTION);
+        filter.addAction(Constants.TAB_SELECTED_ACTION);
 
         registerReceiver(webViewReceiver, filter);
     }

@@ -1,6 +1,7 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -22,7 +23,6 @@ import java.util.zip.Inflater;
  */
 
 public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemClickListener {
-
 
     protected TabsAlertDialog(@NonNull Context context) {
         super(context);
@@ -50,7 +50,10 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Toast.makeText(getContext(), "Tab selected: " + i, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(Constants.TAB_SELECTED_ACTION);
+        intent.putExtra(Constants.SELECTED_TAB_KEY, i);
+        getContext().sendBroadcast(intent);
+
         dismiss();
     }
 }
