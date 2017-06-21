@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setAdapter(webViewPagerAdapter);
-        webViewPager.setOffscreenPageLimit(3);
+        webViewPager.setOffscreenPageLimit(1);
 
         goButton.setEnabled(false);
 
@@ -319,7 +319,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ArrayList<Bundle> savedWebViewtStates = new ArrayList<>();
         ArrayList<String> webPageTitlesList = new ArrayList<>();
         for (String webViewFragmentKey : webViewFragmentUids) {
+
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
+
+            if (!webViewFragment.isAdded()) {
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.add(webViewFragment, webViewFragmentKey);
+                fragmentTransaction.commitNow();
+            }
+
             savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
             webPageTitlesList.add(webPageTitles.get(webViewFragmentKey));
 
