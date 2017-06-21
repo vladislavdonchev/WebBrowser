@@ -245,9 +245,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setText("");
 
         //TODO Why does not this work on all devices?
-        showKeyboard();
         addressBarEditText.setFocusableInTouchMode(true);
         addressBarEditText.requestFocus();
+        showKeyboard();
     }
 
     @Override
@@ -300,6 +300,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (restoredWebViewStates.containsKey(webViewFragmentUids.get(position))) {
                 webViewFragment.setWebViewState(restoredWebViewStates.get(webViewFragmentUids.get(position)));
                 restoredWebViewStates.remove(webViewFragmentUids.get(position));
+                Log.d(WebViewFragment.LOG_TAG, "restoredWebViewState " + " " + webViewFragmentUids.get(position));
             }
             return webViewFragment;
         }
@@ -308,6 +309,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void destroyItem(ViewGroup container, int position, Object object) {
             WebViewFragment webViewFragment = (WebViewFragment) object;
             restoredWebViewStates.put(webViewFragmentUids.get(position), webViewFragment.getWebViewState());
+            Log.d(WebViewFragment.LOG_TAG, "webViewStateToBeRestored " + " " + webViewFragmentUids.get(position));
             super.destroyItem(container, position, object);
         }
     }
@@ -319,16 +321,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ArrayList<Bundle> savedWebViewtStates = new ArrayList<>();
         ArrayList<String> webPageTitlesList = new ArrayList<>();
         for (String webViewFragmentKey : webViewFragmentUids) {
-
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
 
             if (!webViewFragment.isAdded()) {
-                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.add(webViewFragment, webViewFragmentKey);
-                fragmentTransaction.commitNow();
+//                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+//                fragmentTransaction.add(webViewFragment, webViewFragmentKey);
+//                fragmentTransaction.commitNow();
+                  savedWebViewtStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
+            } else {
+                savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
             }
 
-            savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
+            Log.d(WebViewFragment.LOG_TAG, "onSaveInstanceState webViewStateToBeRestored " + " " + webViewFragmentKey);
             webPageTitlesList.add(webPageTitles.get(webViewFragmentKey));
 
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
