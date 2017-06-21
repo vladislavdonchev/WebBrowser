@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AlertDialog wifiStatusDialog;
 
     private WebViewFragmentBroadcastReceiver webViewReceiver;
+    private Bundle savedInstanceState;
 
     @Override
     public void networkAvailable() {
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         //TODO We need to make sure that this is an user-friendly behavior.
-        getCurrentFragment().reload();
+        //getCurrentFragment().reload();
     }
 
     @Override
@@ -130,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(MainActivity.class.getName(), "onCreate");
         setContentView(R.layout.activity_main);
 
         addressBarEditText = (EditText) findViewById(R.id.activity_main_address_bar);
@@ -142,31 +144,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
 
         if (savedInstanceState != null) {
-            addressBarEditText.setText(savedInstanceState.getString(ADDRESS_BAR_TEXT_KEY, ""));
-            ArrayList<String> restoredWebViewFragmentUids = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
-            ArrayList<Bundle> restoredWebViewStates = savedInstanceState.getParcelableArrayList(WEBVIEW_STATES_STATE_KEY);
-            ArrayList<String> restoredWebPageTitles = savedInstanceState.getStringArrayList(WEB_PAGE_TITLES_KEY);
-
-            if (restoredWebViewFragmentUids != null) {
-                webViewFragmentUids = restoredWebViewFragmentUids;
-                for (int i = 0; i < restoredWebViewFragmentUids.size(); i++) {
-                    String uid = restoredWebViewFragmentUids.get(i);
-                    WebViewFragment webViewFragment = new WebViewFragment();
-
-                    webViewFragment.setUid(uid);
-
-                    this.restoredWebViewStates.put(uid, restoredWebViewStates.get(i));
-                    webViewFragments.put(uid, webViewFragment);
-                    webPageTitles.put(uid, restoredWebPageTitles.get(i));
-                }
-                tabsCounter.setText(String.valueOf(webViewFragments.size()));
-            }
+            this.savedInstanceState = savedInstanceState;
         } else {
             addNewTab();
         }
 
         webViewPager.addOnPageChangeListener(this);
-        webViewPager.setAdapter(webViewPagerAdapter);
         webViewPager.setOffscreenPageLimit(1);
 
         goButton.setEnabled(false);
@@ -183,6 +166,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(MainActivity.class.getName(), "onResume");
+
+        if (savedInstanceState != null) {
+            restoreInstanceState();
+        }
+
+        webViewPager.setAdapter(webViewPagerAdapter);
 
         if (!isConnected()) {
             networkUnavailable();
@@ -192,9 +182,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerWebViewReceiver();
     }
 
+    private void restoreInstanceState() {
+        addressBarEditText.setText(savedInstanceState.getString(ADDRESS_BAR_TEXT_KEY, ""));
+        ArrayList<String> restoredWebViewFragmentUids = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
+        ArrayList<Bundle> restoredWebViewStates = savedInstanceState.getParcelableArrayList(WEBVIEW_STATES_STATE_KEY);
+        ArrayList<String> restoredWebPageTitles = savedInstanceState.getStringArrayList(WEB_PAGE_TITLES_KEY);
+
+        if (restoredWebViewFragmentUids != null) {
+            webViewFragmentUids = restoredWebViewFragmentUids;
+            for (int i = 0; i < restoredWebViewFragmentUids.size(); i++) {
+                String uid = restoredWebViewFragmentUids.get(i);
+                WebViewFragment webViewFragment = new WebViewFragment();
+
+                webViewFragment.setUid(uid);
+
+                this.restoredWebViewStates.put(uid, restoredWebViewStates.get(i));
+                webViewFragments.put(uid, webViewFragment);
+                webPageTitles.put(uid, restoredWebPageTitles.get(i));
+            }
+            tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        }
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d(MainActivity.class.getName(), "onPause");
 
         unregisterNetworkReceiver();
         unregisterWebViewReceiver();
@@ -236,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewFragmentUids.add(uid);
         webViewFragments.put(uid, webViewFragment);
+        webPageTitles.put(uid, "New Tab");
 
         webViewPagerAdapter.notifyDataSetChanged();
         webViewPager.setCurrentItem(webViewFragments.size() - 1);
@@ -316,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        Log.d(MainActivity.class.getName(), "onSaveInstanceState");
         outState.putString(ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
         outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentUids);
         ArrayList<Bundle> savedWebViewtStates = new ArrayList<>();
