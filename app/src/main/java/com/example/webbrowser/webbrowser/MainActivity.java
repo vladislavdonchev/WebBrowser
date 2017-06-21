@@ -34,10 +34,11 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener {
 
+    public static final String SAVED_INSTANCE_STATE_KEY = "savedInstanceState";
     public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
-    public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsStateKey";
-    public static final String WEB_PAGE_TITLES_KEY = "webPageTitlesKey";
-    public static final String WEBVIEW_STATES_STATE_KEY = "webviewStatesStateKey";
+    public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsState";
+    public static final String WEB_PAGE_TITLES_KEY = "webPageTitles";
+    public static final String WEBVIEW_STATES_STATE_KEY = "webviewStatesState";
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -57,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AlertDialog wifiStatusDialog;
 
     private WebViewFragmentBroadcastReceiver webViewReceiver;
-    private Bundle savedInstanceState;
 
     @Override
     public void networkAvailable() {
@@ -141,14 +141,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPager = (ViewPager) findViewById(R.id.activity_main_web_view_pager);
         tabsCounter = (TextView) findViewById(R.id.activity_main_tabs_counter);
 
-        webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
-
-        if (savedInstanceState != null) {
-            this.savedInstanceState = savedInstanceState;
-        } else {
-            addNewTab();
-        }
-
         webViewPager.addOnPageChangeListener(this);
         webViewPager.setOffscreenPageLimit(1);
 
@@ -168,11 +160,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         Log.d(MainActivity.class.getName(), "onResume");
 
+        Bundle savedInstanceState = getIntent().getExtras();
         if (savedInstanceState != null) {
-            restoreInstanceState();
+            restoreInstanceState(savedInstanceState);
         }
 
+        webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
         webViewPager.setAdapter(webViewPagerAdapter);
+
+        if (webViewFragments.size() == 0) {
+            addNewTab();
+        }
 
         if (!isConnected()) {
             networkUnavailable();
@@ -182,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerWebViewReceiver();
     }
 
-    private void restoreInstanceState() {
+    private void restoreInstanceState(Bundle savedInstanceState) {
         addressBarEditText.setText(savedInstanceState.getString(ADDRESS_BAR_TEXT_KEY, ""));
         ArrayList<String> restoredWebViewFragmentUids = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
         ArrayList<Bundle> restoredWebViewStates = savedInstanceState.getParcelableArrayList(WEBVIEW_STATES_STATE_KEY);
@@ -339,10 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
 
             if (!webViewFragment.isAdded()) {
-//                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-//                fragmentTransaction.add(webViewFragment, webViewFragmentKey);
-//                fragmentTransaction.commitNow();
-                  savedWebViewtStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
+                savedWebViewtStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
             } else {
                 savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
             }
@@ -358,6 +353,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         outState.putStringArrayList(WEB_PAGE_TITLES_KEY, webPageTitlesList);
         outState.putParcelableArrayList(WEBVIEW_STATES_STATE_KEY, savedWebViewtStates);
+
+        getIntent().putExtras(outState);
         super.onSaveInstanceState(outState);
     }
 
