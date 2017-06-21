@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -60,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private WebViewFragmentBroadcastReceiver webViewReceiver;
 
-    @Override
     public void networkAvailable() {
         if (wifiStatusDialog != null && wifiStatusDialog.isShowing()) {
             wifiStatusDialog.hide();
@@ -154,6 +154,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setOnKeyListener(this);
         addressBarEditText.addTextChangedListener(this);
         addressBarEditText.setFocusableInTouchMode(true);
+
+        if (savedInstanceState == null) {
+            restorePersistedTabs();
+        }
     }
 
     @Override
@@ -172,7 +176,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (webViewFragments.size() == 0) {
             addNewTab();
         } else {
-            webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
+            //TODO Discern between first run and loading persisting tabs, and orientation change
+            if (savedInstanceState != null) {
+                webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
+            } else {
+                webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
+            }
         }
     }
 
@@ -187,6 +196,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         registerNetworkReceiver();
         registerWebViewReceiver();
+    }
+
+    private void restorePersistedTabs() {
+        for (int i = 0; i < BrowserSharedPreferences.getTabsCount(this); i++) {
+            WebViewFragment webViewFragment = new WebViewFragment();
+            String uid = UUID.randomUUID().toString();
+
+            webViewFragment.setUid(uid);
+
+            HashMap<String, String> tabInfo = BrowserSharedPreferences.loadTab(this, i);
+            webViewFragments.put(uid, webViewFragment);
+            webViewFragmentUids.add(uid);
+            webPageTitles.put(uid, tabInfo.get(BrowserSharedPreferences.TITLE));
+            webViewFragment.setPersistedURL(tabInfo.get(BrowserSharedPreferences.URL));
+        }
+
+        tabsCounter.setText(String.valueOf(webViewFragments.size()));
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {
@@ -260,6 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewPagerAdapter.notifyDataSetChanged();
         webViewPager.setCurrentItem(webViewFragments.size() - 1);
+        persistTab(webViewFragments.size() - 1);
 
         tabsCounter.setText(String.valueOf(webViewFragments.size()));
 
@@ -271,6 +298,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         showKeyboard();
     }
 
+    private void persistTab(int index) {
+        WebViewFragment fragment = (WebViewFragment) webViewPagerAdapter.getItem(index);
+        String uid = webViewFragmentUids.get(index);
+        BrowserSharedPreferences.saveTab(this, index, fragment.getFragmentURL(), webPageTitles.get(uid));
+    }
+
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         String currentFragmentURL = webViewFragments.get(webViewFragmentUids.get(position)).getFragmentURL();
@@ -279,6 +312,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPageSelected(int position) {
+        BrowserSharedPreferences.setActiveTabIndex(this, position);
         Log.d(WebViewFragment.LOG_TAG, String.valueOf(position));
     }
 
@@ -346,6 +380,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
 
             if (!webViewFragment.isAdded()) {
+                //TODO Crash, possbily casued by tab persistance
                 savedWebViewtStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
             } else {
                 savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
@@ -430,6 +465,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (webViewFragmentUids.get(webViewPager.getCurrentItem()).equals(fragmentUid)) {
             addressBarEditText.setText(url);
         }
+
+        persistTab(webViewFragmentUids.indexOf(fragmentUid));
     }
 
     @Override

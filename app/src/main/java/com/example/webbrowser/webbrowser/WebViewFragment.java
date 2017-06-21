@@ -29,6 +29,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     private ProgressBar webViewProgressBar;
     private Bundle webViewState;
     private String uid;
+    private String persistedURL;
 
     @Nullable
     @Override
@@ -81,6 +82,10 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     @Override
     public void onResume() {
         super.onResume();
+        if (persistedURL != null && !persistedURL.equals("")) {
+            webView.loadUrl(persistedURL);
+            persistedURL = "";
+        }
         Log.d(LOG_TAG, "onResume" + " " + uid);
     }
 
@@ -187,6 +192,7 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
             Intent pageLoadedIntent = new Intent(Constants.WEB_PAGE_LOADED_ACTION);
             pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_TITLE_KEY, webView.getTitle());
+            //TODO Possible crash here
             pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY, webView.getUrl().toString());
             pageLoadedIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_UID, uid);
 
@@ -210,6 +216,14 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
 
     public String getUid() {
         return uid;
+    }
+
+    public String getPersistedURL() {
+        return persistedURL;
+    }
+
+    public void setPersistedURL(String persistedURL) {
+        this.persistedURL = persistedURL;
     }
 
     private class MyWebViewClient extends WebViewClient {
