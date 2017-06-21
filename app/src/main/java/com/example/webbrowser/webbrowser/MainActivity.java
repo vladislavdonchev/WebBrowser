@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsState";
     public static final String WEB_PAGE_TITLES_KEY = "webPageTitles";
     public static final String WEBVIEW_STATES_STATE_KEY = "webviewStatesState";
+    public static final String ACTIVE_WEB_VIEW_INDEX_KEY = "activeWebviewIndex";
 
     private EditText addressBarEditText;
     private Button addNewTabButton;
@@ -170,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (webViewFragments.size() == 0) {
             addNewTab();
+        } else {
+            webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
         }
 
         if (!isConnected()) {
@@ -353,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         outState.putStringArrayList(WEB_PAGE_TITLES_KEY, webPageTitlesList);
         outState.putParcelableArrayList(WEBVIEW_STATES_STATE_KEY, savedWebViewtStates);
+        outState.putInt(ACTIVE_WEB_VIEW_INDEX_KEY, webViewPager.getCurrentItem());
 
         getIntent().putExtras(outState);
         super.onSaveInstanceState(outState);
