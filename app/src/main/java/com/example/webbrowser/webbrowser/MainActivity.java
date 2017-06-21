@@ -156,9 +156,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(MainActivity.class.getName(), "onResume");
+    protected void onStart() {
+        super.onStart();
+        Log.d(MainActivity.class.getName(), "onStart");
 
         Bundle savedInstanceState = getIntent().getExtras();
         if (savedInstanceState != null) {
@@ -171,6 +171,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (webViewFragments.size() == 0) {
             addNewTab();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(MainActivity.class.getName(), "onResume");
 
         if (!isConnected()) {
             networkUnavailable();

@@ -61,6 +61,12 @@ public class WebViewFragment extends Fragment implements View.OnTouchListener {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(LOG_TAG, "onCreate" + " " + uid);
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         Log.d(LOG_TAG, "onAttach" + " " + uid);
