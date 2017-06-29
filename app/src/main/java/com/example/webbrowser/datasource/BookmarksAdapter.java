@@ -6,6 +6,7 @@ import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.webbrowser.webbrowser.R;
@@ -34,10 +35,14 @@ public class BookmarksAdapter extends CursorAdapter implements View.OnClickListe
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         String title = cursor.getString(cursor.getColumnIndex(BookmarksTableMetaData.BOOKMARK_TITLE));
+        String id = cursor.getString(cursor.getColumnIndex(BookmarksTableMetaData._ID));
         String timestamp = dateFormat.format(new Date(cursor.getLong((cursor.getColumnIndex(BookmarksTableMetaData.BOOKMARK_TIMESTAMP)))));
 
         TextView titleTextView = (TextView)view.findViewById(R.id.bookmark_item_title);
         TextView timestampTextView = (TextView)view.findViewById(R.id.bookmark_item_timestamp);
+        Button deleteButton = view.findViewById(R.id.bookmark_item_delete);
+        deleteButton.setTag(id);
+        deleteButton.setOnClickListener(this);
 
         titleTextView.setText(title);
         timestampTextView.setText(timestamp);
@@ -51,9 +56,7 @@ public class BookmarksAdapter extends CursorAdapter implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        int position = Integer.parseInt(view.getTag().toString());
-        Bookmark bookmark = (Bookmark) getItem(position);
-        deleteItem(bookmark.getID());
+        deleteItem(Long.parseLong((String)view.getTag()));
     }
 
     private void deleteItem(long id) {
