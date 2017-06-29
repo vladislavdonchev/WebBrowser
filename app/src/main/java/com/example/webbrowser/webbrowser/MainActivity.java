@@ -128,6 +128,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case Constants.TAB_SELECTED_ACTION:
                     selectTab(intent.getIntExtra(Constants.SELECTED_TAB_KEY, 0));
                     break;
+                case Constants.OPEN_BOOKMARK:
+                    String bookmarkURL = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY);
+                    addNewTab();
+                    webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(bookmarkURL);
+                    break;
             }
         }
     }
@@ -272,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         filter.addAction(Constants.HIDE_KEYBOARD_ACTION);
         filter.addAction(Constants.WEB_PAGE_LOADED_ACTION);
         filter.addAction(Constants.TAB_SELECTED_ACTION);
+        filter.addAction(Constants.OPEN_BOOKMARK);
 
         registerReceiver(webViewReceiver, filter);
     }

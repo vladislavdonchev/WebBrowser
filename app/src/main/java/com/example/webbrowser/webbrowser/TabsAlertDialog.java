@@ -1,6 +1,7 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -20,6 +21,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksAdapter;
 import com.example.webbrowser.datasource.BookmarksDAO;
 
@@ -57,8 +59,10 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
         openTabsList = (ListView) layout.findViewById(R.id.tabs_list_view_open);
         openTabsList.setAdapter(adapter);
         openTabsList.setOnItemClickListener(this);
+
         bookmarksList = (ListView) layout.findViewById(R.id.tabs_list_view_bookmarked);
         bookmarksList.setAdapter(bookmarksAdapter);
+        bookmarksList.setOnItemClickListener(this);
 
         openTabsButton = (Button) layout.findViewById(R.id.tabs_list_view_open_button);
         bookmarksButton = (Button) layout.findViewById(R.id.tabs_list_view_bookmarked_button);
@@ -73,11 +77,24 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Intent intent = new Intent(Constants.TAB_SELECTED_ACTION);
-        intent.putExtra(Constants.SELECTED_TAB_KEY, i);
-        getContext().sendBroadcast(intent);
+        switch (adapterView.getId()) {
+            case R.id.tabs_list_view_open:
+                Intent intent = new Intent(Constants.TAB_SELECTED_ACTION);
+                intent.putExtra(Constants.SELECTED_TAB_KEY, i);
+                getContext().sendBroadcast(intent);
 
-        dismiss();
+                dismiss();
+                break;
+            case R.id.tabs_list_view_bookmarked:
+                BookmarksAdapter adapter = (BookmarksAdapter) adapterView.getAdapter();
+                Bookmark bookmark = (Bookmark) adapter.getItem(i);
+                Intent openTabIntent = new Intent(Constants.OPEN_BOOKMARK);
+                openTabIntent.putExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY, bookmark.getUrl());
+                getContext().sendBroadcast(openTabIntent);
+
+                dismiss();
+                break;
+        }
     }
 
     @Override

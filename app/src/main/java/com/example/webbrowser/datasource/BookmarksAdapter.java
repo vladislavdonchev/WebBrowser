@@ -18,14 +18,12 @@ import java.util.Date;
  * Created by username on 29/06/2017.
  */
 
-public class BookmarksAdapter extends CursorAdapter {
+public class BookmarksAdapter extends CursorAdapter implements View.OnClickListener {
 
-    private DateFormat dateFormat;
+    private DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
 
     public BookmarksAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
-
-        dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
     }
 
     @Override
@@ -47,6 +45,19 @@ public class BookmarksAdapter extends CursorAdapter {
 
     @Override
     public Object getItem(int position) {
-        return super.getItem(position);
+        getCursor().moveToPosition(position);
+        return BookmarksDAO.getBookmark(getCursor());
+    }
+
+    @Override
+    public void onClick(View view) {
+        int position = Integer.parseInt(view.getTag().toString());
+        Bookmark bookmark = (Bookmark) getItem(position);
+        deleteItem(bookmark.getID());
+    }
+
+    private void deleteItem(long id) {
+        BookmarksDAO.delete(id);
+        swapCursor(BookmarksDAO.query());
     }
 }

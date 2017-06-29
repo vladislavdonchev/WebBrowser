@@ -8,16 +8,16 @@ import java.util.Date;
  */
 
 public class Bookmark {
-    private int ID;
+    private long ID;
     private String title;
     private String url;
     private Date timestamp;
 
-    public int getID() {
+    public long getID() {
         return ID;
     }
 
-    public void setID(int ID) {
+    public void setID(long ID) {
         this.ID = ID;
     }
 
