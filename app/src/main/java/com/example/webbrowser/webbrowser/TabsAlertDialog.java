@@ -14,10 +14,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.example.webbrowser.datasource.BookmarksAdapter;
+import com.example.webbrowser.datasource.BookmarksDAO;
 
 import java.util.ArrayList;
 import java.util.zip.Inflater;
@@ -44,6 +48,8 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, titles);
         LayoutInflater inflater = LayoutInflater.from(context);
 
+        BookmarksAdapter bookmarksAdapter = new BookmarksAdapter(getContext(), BookmarksDAO.query(), 0);
+
         //int height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 192, context.getResources().getDisplayMetrics());
         //ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
 
@@ -52,6 +58,7 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
         openTabsList.setAdapter(adapter);
         openTabsList.setOnItemClickListener(this);
         bookmarksList = (ListView) layout.findViewById(R.id.tabs_list_view_bookmarked);
+        bookmarksList.setAdapter(bookmarksAdapter);
 
         openTabsButton = (Button) layout.findViewById(R.id.tabs_list_view_open_button);
         bookmarksButton = (Button) layout.findViewById(R.id.tabs_list_view_bookmarked_button);

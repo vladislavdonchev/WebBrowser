@@ -23,11 +23,11 @@ public class BookmarksDAO {
     }
 
 
-    public static Cursor query(String whereClause) {
+    public static Cursor query() {
         BookmarksDbHelper helper = BookmarksDbHelper.getInstance();
         SQLiteDatabase db = helper.getWritableDatabase();
 
-        return db.query(BookmarksTableMetaData.TABLE_NAME, new String[] {BookmarksTableMetaData.BOOKMARK_TITLE, BookmarksTableMetaData.BOOKMARK_URL, BookmarksTableMetaData.BOOKMARK_TIMESTAMP},
+        return db.query(BookmarksTableMetaData.TABLE_NAME, new String[] {BookmarksTableMetaData._ID, BookmarksTableMetaData.BOOKMARK_TITLE, BookmarksTableMetaData.BOOKMARK_URL, BookmarksTableMetaData.BOOKMARK_TIMESTAMP},
                 null, null, null, null, null);
     }
 }

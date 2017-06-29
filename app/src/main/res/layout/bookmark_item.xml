@@ -5,16 +5,19 @@
 
     <TextView
         android:id="@+id/bookmark_item_timestamp"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_alignParentLeft="true">
+        android:layout_alignParentRight="true"
+        android:textSize="24sp">
     </TextView>
 
     <TextView
         android:id="@+id/bookmark_item_title"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
         android:layout_marginRight="8dp"
-        android:layout_toLeftOf="@id/bookmark_item_timestamp">
+        android:layout_toLeftOf="@id/bookmark_item_timestamp"
+        android:textSize="24sp"
+        android:layout_alignParentLeft="true">
     </TextView>
 </RelativeLayout>
