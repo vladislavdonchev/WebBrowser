@@ -33,6 +33,8 @@ import android.widget.Toast;
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksDAO;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -131,7 +133,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case Constants.OPEN_BOOKMARK:
                     String bookmarkURL = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY);
                     addNewTab();
-                    webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(bookmarkURL);
+                    if (!TextUtils.isEmpty(bookmarkURL)) {
+                        webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(bookmarkURL);
+                    }
                     break;
             }
         }
