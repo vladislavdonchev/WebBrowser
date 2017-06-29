@@ -7,6 +7,7 @@
 
     <Button
         android:id="@+id/bookmark_item_delete"
+        android:focusable="false"
         android:layout_width="44dp"
         android:layout_height="42dp"
         android:layout_alignParentRight="true"
