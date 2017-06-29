@@ -29,7 +29,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.webbrowser.datasource.Bookmark;
+import com.example.webbrowser.datasource.BookmarksDAO;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -88,6 +93,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         wifiStatusDialog = alertDialogBuilder.create();
 
         wifiStatusDialog.show();
+    }
+
+    public void favouritesTapped(View view) {
+        String uid = webViewFragmentUids.get(webViewPager.getCurrentItem());
+
+        Bookmark bookmark = new Bookmark();
+        bookmark.setTitle(webPageTitles.get(uid));
+        bookmark.setUrl(addressBarEditText.getText().toString());
+        bookmark.setTimestamp(new Date());
+        BookmarksDAO.insert(bookmark);
+        Toast.makeText(this, "Bookmark saved!", Toast.LENGTH_SHORT).show();
     }
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {

@@ -1,6 +1,7 @@
 package com.example.webbrowser.datasource;
 
-import java.sql.Date;
+
+import java.util.Date;
 
 /**
  * Created by username on 29/06/2017.
