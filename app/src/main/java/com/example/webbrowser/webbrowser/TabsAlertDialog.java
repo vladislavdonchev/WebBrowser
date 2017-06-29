@@ -47,7 +47,7 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
     public TabsAlertDialog(@NonNull Context context, ArrayList<String> titles) {
         super(context);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, titles);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.tab_item, titles);
         LayoutInflater inflater = LayoutInflater.from(context);
 
         BookmarksAdapter bookmarksAdapter = new BookmarksAdapter(getContext(), BookmarksDAO.query(), 0);
