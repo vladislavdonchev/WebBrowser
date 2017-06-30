@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WebBrowser</string>
+    <string name="my_location">IP Geo Location</string>
 </resources>

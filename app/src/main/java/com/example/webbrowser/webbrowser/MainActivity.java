@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -22,6 +21,9 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -211,6 +213,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.action_bar, menu);
+
+        return true;
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         Log.d(MainActivity.class.getName(), "onResume");
@@ -269,6 +279,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         unregisterNetworkReceiver();
         unregisterWebViewReceiver();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_bar_my_location:
+                checkLocation();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void checkLocation() {
+        Toast.makeText(this, "We should check the location now.", Toast.LENGTH_SHORT).show();
     }
 
     private void unregisterNetworkReceiver() {
