@@ -45,7 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener, BrowserPreferenceReadListener {
 
     public static final String SAVED_INSTANCE_STATE_KEY = "savedInstanceState";
     public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
@@ -112,6 +112,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         WriteBookmarkTask writeTask = new WriteBookmarkTask();
         writeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bookmark);
+    }
+
+    @Override
+    public void browserTabsLoaded(HashMap<String, String>[] tabs) {
+        for (HashMap<String, String> tab: tabs) {
+            WebViewFragment webViewFragment = new WebViewFragment();
+            String uid = UUID.randomUUID().toString();
+
+            webViewFragment.setUid(uid);
+
+            webViewFragments.put(uid, webViewFragment);
+            webViewFragmentUids.add(uid);
+            webPageTitles.put(uid, tab.get(BrowserSharedPreferences.TITLE));
+            webViewFragment.setPersistedURL(tab.get(BrowserSharedPreferences.URL));
+        }
+
+
+        tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        webViewPagerAdapter.notifyDataSetChanged();
+        webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
+
     }
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
@@ -210,8 +231,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //TODO Discern between first run and loading persisting tabs, and orientation change
             if (savedInstanceState != null) {
                 webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
-            } else {
-                webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
             }
         }
     }
@@ -238,20 +257,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void restorePersistedTabs() {
-        for (int i = 0; i < BrowserSharedPreferences.getTabsCount(this); i++) {
-            WebViewFragment webViewFragment = new WebViewFragment();
-            String uid = UUID.randomUUID().toString();
-
-            webViewFragment.setUid(uid);
-
-            HashMap<String, String> tabInfo = BrowserSharedPreferences.loadTab(this, i);
-            webViewFragments.put(uid, webViewFragment);
-            webViewFragmentUids.add(uid);
-            webPageTitles.put(uid, tabInfo.get(BrowserSharedPreferences.TITLE));
-            webViewFragment.setPersistedURL(tabInfo.get(BrowserSharedPreferences.URL));
-        }
-
-        tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        BrowserSharedPreferences.loadTabs(this, this);
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {
