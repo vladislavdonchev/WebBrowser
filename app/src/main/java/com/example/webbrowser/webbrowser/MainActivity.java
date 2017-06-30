@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -35,6 +36,7 @@ import android.widget.Toast;
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksDAO;
 import com.example.webbrowser.datasource.IPGeoLocator;
+import com.example.webbrowser.datasource.WriteBookmarkTask;
 
 import org.w3c.dom.Text;
 
@@ -107,8 +109,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bookmark.setTitle(webPageTitles.get(uid));
         bookmark.setUrl(addressBarEditText.getText().toString());
         bookmark.setTimestamp(new Date());
-        BookmarksDAO.insert(bookmark);
-        Toast.makeText(this, "Bookmark saved!", Toast.LENGTH_SHORT).show();
+
+        WriteBookmarkTask writeTask = new WriteBookmarkTask();
+        writeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bookmark);
     }
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {

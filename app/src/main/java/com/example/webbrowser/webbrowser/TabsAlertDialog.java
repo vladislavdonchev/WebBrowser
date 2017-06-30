@@ -1,38 +1,31 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CursorAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksAdapter;
-import com.example.webbrowser.datasource.BookmarksDAO;
+import com.example.webbrowser.datasource.ReadBookmarkTaskListener;
+import com.example.webbrowser.datasource.ReadBookmarksTask;
 
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 /**
  * Created by username on 19/06/2017.
  */
 
-public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemClickListener, View.OnClickListener {
+public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemClickListener, View.OnClickListener, ReadBookmarkTaskListener {
 
     private Button openTabsButton;
     private Button bookmarksButton;
@@ -50,7 +43,8 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.tab_item, titles);
         LayoutInflater inflater = LayoutInflater.from(context);
 
-        BookmarksAdapter bookmarksAdapter = new BookmarksAdapter(getContext(), BookmarksDAO.query(), 0);
+        ReadBookmarksTask bookmarksTask = new ReadBookmarksTask(this);
+        bookmarksTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         //int height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 192, context.getResources().getDisplayMetrics());
         //ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
@@ -61,7 +55,6 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
         openTabsList.setOnItemClickListener(this);
 
         bookmarksList = (ListView) layout.findViewById(R.id.tabs_list_view_bookmarked);
-        bookmarksList.setAdapter(bookmarksAdapter);
         bookmarksList.setOnItemClickListener(this);
 
         openTabsButton = (Button) layout.findViewById(R.id.tabs_list_view_open_button);
@@ -113,5 +106,11 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
                 bookmarksButton.setBackgroundResource(android.R.color.transparent);
                 break;
         }
+    }
+
+    @Override
+    public void bookmarkQueryCompleted(Cursor cursor) {
+        BookmarksAdapter bookmarksAdapter = new BookmarksAdapter(getContext(), cursor, 0);
+        bookmarksList.setAdapter(bookmarksAdapter);
     }
 }

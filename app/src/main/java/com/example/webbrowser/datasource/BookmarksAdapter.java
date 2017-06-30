@@ -2,6 +2,7 @@ package com.example.webbrowser.datasource;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +20,7 @@ import java.util.Date;
  * Created by username on 29/06/2017.
  */
 
-public class BookmarksAdapter extends CursorAdapter implements View.OnClickListener {
+public class BookmarksAdapter extends CursorAdapter implements View.OnClickListener, DeleteBookmarkTaskListener, ReadBookmarkTaskListener {
 
     private DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
 
@@ -60,7 +61,18 @@ public class BookmarksAdapter extends CursorAdapter implements View.OnClickListe
     }
 
     private void deleteItem(long id) {
-        BookmarksDAO.delete(id);
-        swapCursor(BookmarksDAO.query());
+        DeleteBookmarkTask deleteTask = new DeleteBookmarkTask(this);
+        deleteTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
+    }
+
+    @Override
+    public void bookmarkDeleted() {
+        ReadBookmarksTask bookmarksTask = new ReadBookmarksTask(this);
+        bookmarksTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    @Override
+    public void bookmarkQueryCompleted(Cursor cursor) {
+        swapCursor(cursor);
     }
 }
