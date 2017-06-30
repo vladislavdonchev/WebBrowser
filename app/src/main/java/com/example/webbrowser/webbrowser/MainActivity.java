@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -35,6 +36,7 @@ import android.widget.Toast;
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksDAO;
 import com.example.webbrowser.datasource.IPGeoLocator;
+import com.example.webbrowser.datasource.WriteBookmarkTask;
 
 import org.w3c.dom.Text;
 
@@ -43,7 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener, BrowserPreferenceReadListener {
 
     public static final String SAVED_INSTANCE_STATE_KEY = "savedInstanceState";
     public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
@@ -109,9 +111,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bookmark.setTitle(webPageTitles.get(uid));
         bookmark.setUrl(addressBarEditText.getText().toString());
         bookmark.setTimestamp(new Date());
-        BookmarksDAO.insert(bookmark);
 
-        Toast.makeText(this, "Bookmark saved!", Toast.LENGTH_SHORT).show();
+        WriteBookmarkTask writeTask = new WriteBookmarkTask();
+        writeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bookmark);
+    }
+
+    @Override
+    public void browserTabsLoaded(HashMap<String, String>[] tabs) {
+        for (HashMap<String, String> tab: tabs) {
+            WebViewFragment webViewFragment = new WebViewFragment();
+            String uid = UUID.randomUUID().toString();
+
+            webViewFragment.setUid(uid);
+
+            webViewFragments.put(uid, webViewFragment);
+            webViewFragmentUids.add(uid);
+            webPageTitles.put(uid, tab.get(BrowserSharedPreferences.TITLE));
+            restoredWebViewUrls.put(uid, tab.get(BrowserSharedPreferences.URL));
+        }
+
+        tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        webViewPagerAdapter.notifyDataSetChanged();
+        webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
     }
 
 
@@ -212,8 +233,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //TODO Discern between first run and loading persisting tabs, and orientation change.
             if (savedInstanceState != null) {
                 webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
-            } else {
-                webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
             }
         }
     }
@@ -240,20 +259,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void restorePersistedTabs() {
-        for (int i = 0; i < BrowserSharedPreferences.getTabsCount(this); i++) {
-            WebViewFragment webViewFragment = new WebViewFragment();
-            String uid = UUID.randomUUID().toString();
-
-            webViewFragment.setUid(uid);
-
-            HashMap<String, String> tabInfo = BrowserSharedPreferences.loadTab(this, i);
-            webViewFragments.put(uid, webViewFragment);
-            webViewFragmentUids.add(uid);
-            webPageTitles.put(uid, tabInfo.get(BrowserSharedPreferences.TITLE));
-            restoredWebViewUrls.put(uid, tabInfo.get(BrowserSharedPreferences.URL));
-        }
-
-        tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        BrowserSharedPreferences.loadTabs(this, this);
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {

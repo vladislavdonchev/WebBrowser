@@ -51,5 +51,5 @@
         android:layout_centerInParent="true"
         android:id="@+id/location_dialog_progress_bar"
         android:background="@android:color/transparent"/>
-    
+
 </RelativeLayout>
