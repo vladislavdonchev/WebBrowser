@@ -29,7 +29,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.webbrowser.datasource.Bookmark;
+import com.example.webbrowser.datasource.BookmarksDAO;
+
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -90,6 +97,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         wifiStatusDialog.show();
     }
 
+    public void favouritesTapped(View view) {
+        String uid = webViewFragmentUids.get(webViewPager.getCurrentItem());
+
+        Bookmark bookmark = new Bookmark();
+        bookmark.setTitle(webPageTitles.get(uid));
+        bookmark.setUrl(addressBarEditText.getText().toString());
+        bookmark.setTimestamp(new Date());
+        BookmarksDAO.insert(bookmark);
+        Toast.makeText(this, "Bookmark saved!", Toast.LENGTH_SHORT).show();
+    }
+
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
 
         @Override
@@ -111,6 +129,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case Constants.TAB_SELECTED_ACTION:
                     selectTab(intent.getIntExtra(Constants.SELECTED_TAB_KEY, 0));
+                    break;
+                case Constants.OPEN_BOOKMARK:
+                    String bookmarkURL = intent.getStringExtra(Constants.WEBVIEW_FRAGMENT_EXTRA_URL_KEY);
+                    addNewTab();
+                    if (!TextUtils.isEmpty(bookmarkURL)) {
+                        webViewFragments.get(webViewFragmentUids.get(webViewPager.getCurrentItem())).loadURL(bookmarkURL);
+                    }
                     break;
             }
         }
@@ -256,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         filter.addAction(Constants.HIDE_KEYBOARD_ACTION);
         filter.addAction(Constants.WEB_PAGE_LOADED_ACTION);
         filter.addAction(Constants.TAB_SELECTED_ACTION);
+        filter.addAction(Constants.OPEN_BOOKMARK);
 
         registerReceiver(webViewReceiver, filter);
     }
