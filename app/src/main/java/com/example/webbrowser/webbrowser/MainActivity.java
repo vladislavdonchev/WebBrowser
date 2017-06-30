@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksDAO;
+import com.example.webbrowser.datasource.IPGeoLocator;
 
 import org.w3c.dom.Text;
 
@@ -293,7 +294,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkLocation() {
-        Toast.makeText(this, "We should check the location now.", Toast.LENGTH_SHORT).show();
+        LocationDialog locationDialog = new LocationDialog(this);
+        locationDialog.show();
     }
 
     private void unregisterNetworkReceiver() {
