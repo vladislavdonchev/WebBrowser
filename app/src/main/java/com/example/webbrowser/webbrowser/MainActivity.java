@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String FRAGMENT_UIDS_STATE_KEY = "fragmentUidsState";
     public static final String WEB_PAGE_TITLES_KEY = "webPageTitles";
     public static final String WEBVIEW_STATES_STATE_KEY = "webviewStatesState";
+    public static final String WEBVIEW_STATES_URLS_KEY = "webviewUrlsState";
     public static final String ACTIVE_WEB_VIEW_INDEX_KEY = "activeWebviewIndex";
 
     private EditText addressBarEditText;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<String> webViewFragmentUids = new ArrayList<>();
     private HashMap<String, WebViewFragment> webViewFragments = new HashMap<>();
     private HashMap<String, Bundle> restoredWebViewStates = new HashMap<>();
+    private HashMap<String, String> restoredWebViewUrls = new HashMap<>();
     private HashMap<String, String> webPageTitles = new HashMap<>();
 
     private NetworkStateReceiver networkStateReceiver;
@@ -108,8 +110,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bookmark.setUrl(addressBarEditText.getText().toString());
         bookmark.setTimestamp(new Date());
         BookmarksDAO.insert(bookmark);
+
         Toast.makeText(this, "Bookmark saved!", Toast.LENGTH_SHORT).show();
     }
+
+
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
 
@@ -204,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (webViewFragments.size() == 0) {
             addNewTab();
         } else {
-            //TODO Discern between first run and loading persisting tabs, and orientation change
+            //TODO Discern between first run and loading persisting tabs, and orientation change.
             if (savedInstanceState != null) {
                 webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
             } else {
@@ -245,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             webViewFragments.put(uid, webViewFragment);
             webViewFragmentUids.add(uid);
             webPageTitles.put(uid, tabInfo.get(BrowserSharedPreferences.TITLE));
-            webViewFragment.setPersistedURL(tabInfo.get(BrowserSharedPreferences.URL));
+            restoredWebViewUrls.put(uid, tabInfo.get(BrowserSharedPreferences.URL));
         }
 
         tabsCounter.setText(String.valueOf(webViewFragments.size()));
@@ -255,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setText(savedInstanceState.getString(ADDRESS_BAR_TEXT_KEY, ""));
         ArrayList<String> restoredWebViewFragmentUids = savedInstanceState.getStringArrayList(FRAGMENT_UIDS_STATE_KEY);
         ArrayList<Bundle> restoredWebViewStates = savedInstanceState.getParcelableArrayList(WEBVIEW_STATES_STATE_KEY);
+        ArrayList<String> restoredWebViewUrls = savedInstanceState.getStringArrayList(WEBVIEW_STATES_URLS_KEY);
         ArrayList<String> restoredWebPageTitles = savedInstanceState.getStringArrayList(WEB_PAGE_TITLES_KEY);
 
         if (restoredWebViewFragmentUids != null) {
@@ -265,7 +271,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 webViewFragment.setUid(uid);
 
-                this.restoredWebViewStates.put(uid, restoredWebViewStates.get(i));
+                if (restoredWebViewStates.get(i) != null) {
+                    this.restoredWebViewStates.put(uid, restoredWebViewStates.get(i));
+                }
+                if (restoredWebViewUrls.get(i) != null) {
+                    this.restoredWebViewUrls.put(uid, restoredWebViewUrls.get(i));
+                }
                 webViewFragments.put(uid, webViewFragment);
                 webPageTitles.put(uid, restoredWebPageTitles.get(i));
             }
@@ -409,6 +420,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 webViewFragment.setWebViewState(restoredWebViewStates.get(webViewFragmentUids.get(position)));
                 restoredWebViewStates.remove(webViewFragmentUids.get(position));
                 Log.d(WebViewFragment.LOG_TAG, "restoredWebViewState " + " " + webViewFragmentUids.get(position));
+            } else if (restoredWebViewUrls.containsKey(webViewFragmentUids.get(position))) {
+                webViewFragment.setPersistedURL(restoredWebViewUrls.get(webViewFragmentUids.get(position)));
+                restoredWebViewUrls.remove(webViewFragmentUids.get(position));
+                Log.d(WebViewFragment.LOG_TAG, "restoredWebViewUrl " + " " + webViewFragmentUids.get(position));
             }
             return webViewFragment;
         }
@@ -427,16 +442,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(MainActivity.class.getName(), "onSaveInstanceState");
         outState.putString(ADDRESS_BAR_TEXT_KEY, addressBarEditText.getText().toString());
         outState.putStringArrayList(FRAGMENT_UIDS_STATE_KEY, webViewFragmentUids);
-        ArrayList<Bundle> savedWebViewtStates = new ArrayList<>();
+        ArrayList<Bundle> savedWebViewStates = new ArrayList<>();
+        ArrayList<String> savedWebViewUrls = new ArrayList<>();
         ArrayList<String> webPageTitlesList = new ArrayList<>();
         for (String webViewFragmentKey : webViewFragmentUids) {
             WebViewFragment webViewFragment = webViewFragments.get(webViewFragmentKey);
-
+            //TODO Refator this to use SparseArray instead of saving null values.
             if (!webViewFragment.isAdded()) {
-                //TODO Crash, possbily casued by tab persistance
-                savedWebViewtStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
+                if (restoredWebViewStates.containsKey(webViewFragmentKey)) {
+                    savedWebViewStates.add((Bundle) restoredWebViewStates.get(webViewFragmentKey).clone());
+                } else {
+                    savedWebViewStates.add(null);
+                }
+                if (restoredWebViewUrls.containsKey(webViewFragmentKey)) {
+                    savedWebViewUrls.add(restoredWebViewUrls.get(webViewFragmentKey));
+                } else {
+                    savedWebViewUrls.add(null);
+                }
             } else {
-                savedWebViewtStates.add((Bundle) webViewFragment.getWebViewState().clone());
+                savedWebViewStates.add((Bundle) webViewFragment.getWebViewState().clone());
+                savedWebViewUrls.add(null);
             }
 
             Log.d(WebViewFragment.LOG_TAG, "onSaveInstanceState webViewStateToBeRestored " + " " + webViewFragmentKey);
@@ -448,8 +473,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             webViewFragments.remove(webViewFragmentKey);
         }
+        outState.putParcelableArrayList(WEBVIEW_STATES_STATE_KEY, savedWebViewStates);
+        outState.putStringArrayList(WEBVIEW_STATES_URLS_KEY, savedWebViewUrls);
         outState.putStringArrayList(WEB_PAGE_TITLES_KEY, webPageTitlesList);
-        outState.putParcelableArrayList(WEBVIEW_STATES_STATE_KEY, savedWebViewtStates);
         outState.putInt(ACTIVE_WEB_VIEW_INDEX_KEY, webViewPager.getCurrentItem());
 
         getIntent().putExtras(outState);
