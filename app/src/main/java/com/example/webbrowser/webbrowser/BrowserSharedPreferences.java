@@ -19,18 +19,40 @@ public class BrowserSharedPreferences {
     private static String WEB_BROWSER_TABS_COUNT_KEY = "tabsCount";
     private static String WEB_BROWSER_ACTIVE_TAB_KEY = "activeTabs";
 
-    public static void saveTab(Activity activity, int index, String url, String title) {
-        SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(index + TITLE, title);
-        editor.putString(index + URL, url);
+    private static class SaveTabRunnable implements Runnable {
 
-        int count = preferences.getInt(WEB_BROWSER_TABS_COUNT_KEY, 0);
-        if (!preferences.contains(index + TITLE)) {
-            editor.putInt(WEB_BROWSER_TABS_COUNT_KEY, ++count);
+        private Activity activity;
+        private int index;
+        private String url;
+        private String title;
+
+        public SaveTabRunnable(Activity activity, int index, String url, String title) {
+            this.activity = activity;
+            this.index = index;
+            this.url = url;
+            this.title = title;
         }
 
-        editor.commit();
+        @Override
+        public void run() {
+            SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(index + TITLE, title);
+            editor.putString(index + URL, url);
+
+
+            int count = preferences.getInt(WEB_BROWSER_TABS_COUNT_KEY, 0);
+            if (!preferences.contains(index + TITLE)) {
+                editor.putInt(WEB_BROWSER_TABS_COUNT_KEY, ++count);
+            }
+
+            editor.commit();
+        }
+    }
+
+    public static void saveTab(Activity activity, int index, String url, String title) {
+        Thread thread = new Thread(new SaveTabRunnable(activity, index, url, title));
+        thread.start();
     }
 
     public static HashMap<String, String> loadTab(Activity activity, int index) {
