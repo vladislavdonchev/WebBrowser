@@ -4,22 +4,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksAdapter;
+import com.example.webbrowser.datasource.BookmarksDAO;
+import com.example.webbrowser.datasource.BookmarksTableMetaData;
 import com.example.webbrowser.datasource.ReadBookmarkTaskListener;
 import com.example.webbrowser.datasource.ReadBookmarksTask;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by username on 19/06/2017.
@@ -33,14 +40,10 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
     private ListView openTabsList;
     private ListView bookmarksList;
 
-    protected TabsAlertDialog(@NonNull Context context) {
-        super(context);
-    }
 
-    public TabsAlertDialog(@NonNull Context context, ArrayList<String> titles) {
+    public TabsAlertDialog(@NonNull Context context, TabsAdapter adapter) {
         super(context);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.tab_item, titles);
         LayoutInflater inflater = LayoutInflater.from(context);
 
         ReadBookmarksTask bookmarksTask = new ReadBookmarksTask(this);
@@ -51,8 +54,8 @@ public class TabsAlertDialog extends AlertDialog implements AdapterView.OnItemCl
 
         RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.tabs_list_view, null);
         openTabsList = (ListView) layout.findViewById(R.id.tabs_list_view_open);
-        openTabsList.setAdapter(adapter);
         openTabsList.setOnItemClickListener(this);
+        openTabsList.setAdapter(adapter);
 
         bookmarksList = (ListView) layout.findViewById(R.id.tabs_list_view_bookmarked);
         bookmarksList.setOnItemClickListener(this);

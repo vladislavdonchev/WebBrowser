@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="8dp"
+<RelativeLayout android:layout_height="48dp"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:textSize="20sp"
-    android:gravity="center_vertical">
-</TextView>
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <Button
+        android:id="@+id/tab_close_button"
+        android:focusable="false"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ic_close_black_24dp" />
+
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/title_text"
+        android:padding="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/tab_close_button"
+        android:textSize="20sp"
+        android:gravity="center_vertical">
+    </TextView>
+</RelativeLayout>

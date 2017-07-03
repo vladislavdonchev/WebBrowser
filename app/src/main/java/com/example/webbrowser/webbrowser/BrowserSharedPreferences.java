@@ -4,24 +4,28 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.text.TextUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class BrowserSharedPreferences {
 
     public static final String TITLE = "title";
     public static final String URL = "url";
-    private static String WEB_BROWSER_TABS_COUNT_KEY = "tabsCount";
+    public static final String UUID = "uuid";
+
+    private static String WEB_BROWSER_TAB_UUIDs_KEY = "tabUUIDs";
     private static String WEB_BROWSER_ACTIVE_TAB_KEY = "activeTabs";
 
     private static Handler handler = new Handler();
 
     private static class UpdateUIRunnable implements Runnable {
-        private HashMap<String, String>[] tabs;
+        private ArrayList<HashMap<String, String>> tabs;
         private WeakReference<BrowserPreferenceReadListener> listener;
 
-        public UpdateUIRunnable(HashMap<String, String>[] tabs, BrowserPreferenceReadListener listener) {
+        public UpdateUIRunnable(ArrayList<HashMap<String, String>> tabs, BrowserPreferenceReadListener listener) {
             this.tabs = tabs;
             this.listener = new WeakReference<BrowserPreferenceReadListener>(listener);
         }
@@ -46,20 +50,21 @@ public class BrowserSharedPreferences {
         @Override
         public void run() {
             SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
-            int count = preferences.getInt(WEB_BROWSER_TABS_COUNT_KEY, 0);
+            String uuidsCSV = preferences.getString(WEB_BROWSER_TAB_UUIDs_KEY, "");
+            String[] uuids = uuidsCSV.split(",");
 
-//            ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
-            HashMap<String, String>[] result = new HashMap[count];
+            ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 
-            for (int index = 0; index < count; ++index) {
+            for (String uuid: uuids) {
                 HashMap<String, String> tab = new HashMap<String, String>();
 
-                String title = preferences.getString(index + TITLE, "New Tab");
-                String url = preferences.getString(index + URL, "");
+                String title = preferences.getString(uuid + TITLE, "New Tab");
+                String url = preferences.getString(uuid + URL, "");
                 tab.put(TITLE, title);
                 tab.put(URL, url);
+                tab.put(UUID, uuid);
 
-                result[index] = tab;
+                result.add(tab);
             }
 
             UpdateUIRunnable updateUIRunnable = new UpdateUIRunnable(result, listener.get());
@@ -67,41 +72,67 @@ public class BrowserSharedPreferences {
         }
     }
 
-
-
     private static class SaveTabRunnable implements Runnable {
 
         private Activity activity;
-        private int index;
         private String url;
         private String title;
+        private ArrayList<String> uuids;
+        private String uuid;
 
-        public SaveTabRunnable(Activity activity, int index, String url, String title) {
+        public SaveTabRunnable(Activity activity, String uuid, String url, String title, ArrayList<String> uuids) {
             this.activity = activity;
-            this.index = index;
+            this.uuid = uuid;
             this.url = url;
             this.title = title;
+            this.uuids = uuids;
         }
 
         @Override
         public void run() {
             SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(index + TITLE, title);
-            editor.putString(index + URL, url);
+            editor.putString(uuid + TITLE, title);
+            editor.putString(uuid + URL, url);
 
-
-            int count = preferences.getInt(WEB_BROWSER_TABS_COUNT_KEY, 0);
-            if (!preferences.contains(index + TITLE)) {
-                editor.putInt(WEB_BROWSER_TABS_COUNT_KEY, ++count);
-            }
+            String csv =  TextUtils.join(",", uuids);
+            editor.putString(WEB_BROWSER_TAB_UUIDs_KEY, csv);
 
             editor.commit();
         }
     }
 
-    public static void saveTab(Activity activity, int index, String url, String title) {
-        Thread thread = new Thread(new SaveTabRunnable(activity, index, url, title));
+    private static class RemoveTabRunnable implements Runnable {
+        private Activity activity;
+        private ArrayList<String> uuids;
+        private String uuid;
+
+        public RemoveTabRunnable(Activity activity, String uuid, ArrayList<String> uuids) {
+            this.activity = activity;
+            this.uuid = uuid;
+            this.uuids = uuids;
+        }
+
+        @Override
+        public void run() {
+            SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.remove(uuid + TITLE);
+            editor.remove(uuid + URL);
+            editor.remove(WEB_BROWSER_TAB_UUIDs_KEY);
+
+            String csv =  TextUtils.join(",", uuids);
+            editor.putString(WEB_BROWSER_TAB_UUIDs_KEY, csv);
+        }
+    }
+
+    public static void removeTab(Activity activity, String uuid, ArrayList<String> uuids) {
+        Thread thread = new Thread(new RemoveTabRunnable(activity, uuid, uuids));
+        thread.start();
+    }
+
+    public static void saveTab(Activity activity, String uuid, String url, String title, ArrayList<String> uuids) {
+        Thread thread = new Thread(new SaveTabRunnable(activity, uuid, url, title, uuids));
         thread.start();
     }
 

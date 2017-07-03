@@ -1,5 +1,6 @@
 package com.example.webbrowser.webbrowser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -7,5 +8,5 @@ import java.util.HashMap;
  */
 
 public interface BrowserPreferenceReadListener {
-    void browserTabsLoaded(HashMap<String, String>[] tabs);
+    void browserTabsLoaded(ArrayList<HashMap<String, String>> tabs);
 }

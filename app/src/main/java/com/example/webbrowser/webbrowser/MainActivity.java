@@ -31,22 +31,17 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.webbrowser.datasource.Bookmark;
-import com.example.webbrowser.datasource.BookmarksDAO;
-import com.example.webbrowser.datasource.IPGeoLocator;
 import com.example.webbrowser.datasource.LocationService;
 import com.example.webbrowser.datasource.WriteBookmarkTask;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener, BrowserPreferenceReadListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher, View.OnKeyListener, ViewPager.OnPageChangeListener, NetworkStateReceiver.NetworkStateReceiverListener, BrowserPreferenceReadListener, TabsAdapterListener {
 
     public static final String SAVED_INSTANCE_STATE_KEY = "savedInstanceState";
     public static final String ADDRESS_BAR_TEXT_KEY = "textFieldValue";
@@ -75,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AlertDialog wifiStatusDialog;
 
     private WebViewFragmentBroadcastReceiver webViewReceiver;
+    private TabsAlertDialog tabsAlertDialog;
 
     public void networkAvailable() {
         if (wifiStatusDialog != null && wifiStatusDialog.isShowing()) {
@@ -118,10 +114,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void browserTabsLoaded(HashMap<String, String>[] tabs) {
+    public void browserTabsLoaded(ArrayList<HashMap<String, String>> tabs) {
         for (HashMap<String, String> tab: tabs) {
             WebViewFragment webViewFragment = new WebViewFragment();
-            String uid = UUID.randomUUID().toString();
+            String uid = tab.get(BrowserSharedPreferences.UUID);
 
             webViewFragment.setUid(uid);
 
@@ -136,7 +132,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPager.setCurrentItem(BrowserSharedPreferences.getActiveTabIndex(this));
     }
 
-
+    @Override
+    public void onRemoveTab(int index) {
+        String uuid = webViewFragmentUids.get(index);
+        removeTab(uuid);
+    }
 
     public class WebViewFragmentBroadcastReceiver extends BroadcastReceiver {
 
@@ -352,6 +352,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         unregisterReceiver(webViewReceiver);
     }
 
+    private void removeTab(String uuid) {
+        webViewFragmentUids.remove(uuid);
+        webViewFragments.remove(uuid);
+        webPageTitles.remove(uuid);
+
+        webViewPagerAdapter.notifyDataSetChanged();
+        TabsAdapter tabsAdapter = new TabsAdapter(this, R.layout.tab_item, getWebPageTitlesList(), this);
+
+        BrowserSharedPreferences.removeTab(this, uuid, webViewFragmentUids);
+    }
+
     private void addNewTab() {
         WebViewFragment webViewFragment = new WebViewFragment();
 
@@ -383,7 +394,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void persistTab(int index) {
         WebViewFragment fragment = (WebViewFragment) webViewPagerAdapter.getItem(index);
         String uid = webViewFragmentUids.get(index);
-        BrowserSharedPreferences.saveTab(this, index, fragment.getFragmentURL(), webPageTitles.get(uid));
+        BrowserSharedPreferences.saveTab(this, uid, fragment.getFragmentURL(), webPageTitles.get(uid), webViewFragmentUids);
+    }
+
+    private void removePersitedTab(int index) {
+        WebViewFragment fragment = (WebViewFragment) webViewPagerAdapter.getItem(index);
+        String uid = webViewFragmentUids.get(index);
+        BrowserSharedPreferences.saveTab(this, uid, fragment.getFragmentURL(), webPageTitles.get(uid), webViewFragmentUids);
     }
 
     @Override
@@ -518,8 +535,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void tabsButtonPressed() {
-        TabsAlertDialog dialog = new TabsAlertDialog(this, getWebPageTitlesList());
-        dialog.show();
+        TabsAdapter tabsAdapter = new TabsAdapter(this, R.layout.tab_item, getWebPageTitlesList(), this);
+
+        TabsAlertDialog tabsAlertDialog = new TabsAlertDialog(this, tabsAdapter);
+        tabsAlertDialog.show();
     }
 
     private ArrayList<String> getWebPageTitlesList() {
