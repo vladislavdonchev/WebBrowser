@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AlertDialog wifiStatusDialog;
 
     private WebViewFragmentBroadcastReceiver webViewReceiver;
-    private TabsAlertDialog tabsAlertDialog;
 
     public void networkAvailable() {
         if (wifiStatusDialog != null && wifiStatusDialog.isShowing()) {
@@ -358,8 +357,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webPageTitles.remove(uuid);
 
         webViewPagerAdapter.notifyDataSetChanged();
-        TabsAdapter tabsAdapter = new TabsAdapter(this, R.layout.tab_item, getWebPageTitlesList(), this);
-
         BrowserSharedPreferences.removeTab(this, uuid, webViewFragmentUids);
     }
 
