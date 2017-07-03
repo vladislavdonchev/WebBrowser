@@ -16,8 +16,10 @@ import de.greenrobot.event.EventBus;
 public class LocationService extends Service implements IPGeoLocationListener {
 
     public static final String COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION = "com.webbrowser.retrieveLocationAction";
-    public static final int LOCATION_FETCH_DELAY = 60 * 1000;
+    public static final int LOCATION_FETCH_DELAY = 2 * 1000;
     private LocationFetcher fetcher = new LocationFetcher();
+
+    private String lastIPAddress;
 
     private class LocationFetcher implements Runnable {
         @Override
@@ -38,7 +40,7 @@ public class LocationService extends Service implements IPGeoLocationListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction() != null && intent.getAction().equals(COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION)) {
+        if (COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION.equals(intent.getAction())) {
             locationHandler.post(fetcher);
         } else {
             locationHandler.postDelayed(fetcher, LOCATION_FETCH_DELAY);
@@ -50,6 +52,12 @@ public class LocationService extends Service implements IPGeoLocationListener {
     @Override
     public void geoLocationFetched(LocationModel locationModel) {
         locationHandler.postDelayed(fetcher, LOCATION_FETCH_DELAY);
+
+        if (lastIPAddress != null && !lastIPAddress.equals(locationModel.getIp())) {
+            Toast.makeText(this, "IP changed from: " + lastIPAddress + " to: " + locationModel.getIp(), Toast.LENGTH_LONG).show();
+        }
+
+        lastIPAddress = locationModel.getIp();
 
         EventBus eventBus = EventBus.getDefault();
         eventBus.post(locationModel);

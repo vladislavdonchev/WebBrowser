@@ -307,7 +307,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
 
-
         Intent locationServiceIntent = new Intent(this, LocationService.class);
         stopService(locationServiceIntent);
     }
