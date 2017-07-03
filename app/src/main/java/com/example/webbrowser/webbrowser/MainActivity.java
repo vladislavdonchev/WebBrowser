@@ -36,6 +36,7 @@ import android.widget.Toast;
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.BookmarksDAO;
 import com.example.webbrowser.datasource.IPGeoLocator;
+import com.example.webbrowser.datasource.LocationService;
 import com.example.webbrowser.datasource.WriteBookmarkTask;
 
 import org.w3c.dom.Text;
@@ -235,6 +236,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
             }
         }
+
+        Intent locationServiceIntent = new Intent(this, LocationService.class);
+        startService(locationServiceIntent);
     }
 
     @Override
@@ -297,6 +301,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         unregisterNetworkReceiver();
         unregisterWebViewReceiver();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+
+        Intent locationServiceIntent = new Intent(this, LocationService.class);
+        stopService(locationServiceIntent);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.webbrowser.webbrowser;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -18,12 +19,15 @@ import com.example.webbrowser.datasource.BookmarksDAO;
 import com.example.webbrowser.datasource.IPGeoLocationListener;
 import com.example.webbrowser.datasource.IPGeoLocator;
 import com.example.webbrowser.datasource.LocationModel;
+import com.example.webbrowser.datasource.LocationService;
+
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by username on 30/06/2017.
  */
 
-public class LocationDialog extends AlertDialog implements IPGeoLocationListener {
+public class LocationDialog extends AlertDialog {
 
     private TextView ipTextView;
     private TextView countryTextView;
@@ -38,10 +42,6 @@ public class LocationDialog extends AlertDialog implements IPGeoLocationListener
     protected LocationDialog(@NonNull Context context) {
         super(context);
 
-        IPGeoLocator locator = new IPGeoLocator(context);
-        locator.fetchLocation();
-        locator.setGeoLocationListenerListener(this);
-
         LayoutInflater inflater = LayoutInflater.from(context);
         RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.dialog_location, null);
 
@@ -54,13 +54,28 @@ public class LocationDialog extends AlertDialog implements IPGeoLocationListener
         locationLayout = layout.findViewById(R.id.location_dialog_container);
         progressBar = layout.findViewById(R.id.location_dialog_progress_bar);
 
+        Intent retrieveLocationIntent = new Intent(context, LocationService.class);
+        retrieveLocationIntent.setAction(LocationService.COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION);
+        context.startService(retrieveLocationIntent);
+
         setView(layout);
     }
 
     @Override
-    public void geoLocationFetched(LocationModel locationModel) {
-        Toast.makeText(getContext(), "We are in " + locationModel.getCity(), Toast.LENGTH_LONG).show();
+    public void show() {
+        super.show();
 
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void dismiss() {
+        super.dismiss();
+
+        EventBus.getDefault().unregister(this);
+    }
+
+    public void onEvent(LocationModel locationModel) {
         locationLayout.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.GONE);
 
@@ -71,8 +86,7 @@ public class LocationDialog extends AlertDialog implements IPGeoLocationListener
         zipCodeTextView.setText(locationModel.getZipCode());
     }
 
-    @Override
-    public void geoLocationFetchFailed(String error) {
+    public void onEvent(String error) {
         locationLayout.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.GONE);
 
