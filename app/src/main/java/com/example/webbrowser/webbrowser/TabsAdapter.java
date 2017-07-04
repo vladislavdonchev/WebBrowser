@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,7 @@ import java.util.List;
  */
 class TabsAdapter extends ArrayAdapter<String> implements View.OnClickListener {
 
-    protected static class ViewHolder{
+    protected static class ViewHolder {
         protected TextView titleText;
         protected Button deleteButton;
     }
@@ -39,8 +40,7 @@ class TabsAdapter extends ArrayAdapter<String> implements View.OnClickListener {
         View rowView = convertView;
         ViewHolder view;
 
-        if(rowView == null)
-        {
+        if(rowView == null)  {
             // Get a new instance of the row layout view
             LayoutInflater inflater = LayoutInflater.from(getContext());
             rowView = inflater.inflate(R.layout.tab_item, null);
@@ -55,10 +55,15 @@ class TabsAdapter extends ArrayAdapter<String> implements View.OnClickListener {
             view = (ViewHolder) rowView.getTag();
         }
 
-
         view.titleText.setText(getItem(position));
-        view.deleteButton.setTag(position);
-        view.deleteButton.setOnClickListener(this);
+
+        if (titles.size() <= 1) {
+            view.deleteButton.setVisibility(View.INVISIBLE);
+        } else {
+            view.deleteButton.setVisibility(View.VISIBLE);
+            view.deleteButton.setTag(position);
+            view.deleteButton.setOnClickListener(this);
+        }
 
         return rowView;
     }

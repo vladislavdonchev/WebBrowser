@@ -420,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        
+
     }
 
     @Override
@@ -451,8 +451,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public CharSequence getPageTitle(int position) {
+            Log.d(WebViewFragment.class.getName(), "getPageTitle: " + position);
             String title = "New Tab";
-            String loadedTitle = webPageTitles.get(webViewFragmentUids.get(position));
+            String loadedTitle = "";
+            try {
+                loadedTitle = webPageTitles.get(webViewFragmentUids.get(position));
+            } catch (Exception e) {
+                Log.w(WebViewFragment.LOG_TAG, e.getMessage());
+            }
             if (!TextUtils.isEmpty(loadedTitle)) {
                 title = loadedTitle;
             }
@@ -461,11 +467,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public int getItemPosition(Object object) {
+            Log.d(WebViewFragment.class.getName(), "getItemPosition: " + webViewFragments.getKey(object) + " " + webViewFragmentUids.indexOf(webViewFragments.getKey(object)));
             return webViewFragmentUids.indexOf(webViewFragments.getKey(object));
-        }
+         }
 
         @Override
         public int getCount() {
+            Log.d(WebViewFragment.class.getName(), "getCount: " + webViewFragments.size());
             return webViewFragments.size();
         }
 
