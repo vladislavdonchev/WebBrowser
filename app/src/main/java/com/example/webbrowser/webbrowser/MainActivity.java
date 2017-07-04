@@ -365,6 +365,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewPagerAdapter.notifyDataSetChanged();
         BrowserSharedPreferences.removeTab(this, uuid, webViewFragmentUids);
+        updateTabsCounter();
     }
 
     private void addNewTab() {
@@ -385,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPager.setCurrentItem(webViewFragments.size() - 1);
         persistTab(webViewFragments.size() - 1);
 
-        tabsCounter.setText(String.valueOf(webViewFragments.size()));
+        updateTabsCounter();
 
         addressBarEditText.setText("");
 
@@ -393,6 +394,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addressBarEditText.setFocusableInTouchMode(true);
         addressBarEditText.requestFocus();
         showKeyboard();
+    }
+
+    private void updateTabsCounter() {
+        tabsCounter.setText(String.valueOf(webViewFragments.size()));
     }
 
     private void persistTab(int index) {
