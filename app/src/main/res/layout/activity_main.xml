@@ -29,7 +29,7 @@
                     android:id="@+id/activity_open_tabs_button"
                     android:layout_width="42dp"
                     android:layout_height="42dp"
-                    android:background="@drawable/ic_library_books_black_24dp" />
+                    android:background="@drawable/ic_library_books_black_24dp"/>
 
                 <TextView
                     android:layout_width="20dp"
@@ -41,7 +41,9 @@
                     android:textStyle="bold"
                     android:textAlignment="center"
                     android:layout_alignParentRight="true"
-                    android:layout_alignParentBottom="true"/>
+                    android:layout_alignParentBottom="true"
+                    android:elevation="1dp"/>
+
             </RelativeLayout>
 
 
