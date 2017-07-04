@@ -50,19 +50,21 @@ class TabsAdapter extends ArrayAdapter<String> implements View.OnClickListener {
             view.titleText = (TextView) rowView.findViewById(R.id.title_text);
             view.deleteButton = (Button) rowView.findViewById(R.id.tab_close_button);
 
-
             rowView.setTag(view);
         } else {
             view = (ViewHolder) rowView.getTag();
         }
 
         view.titleText.setText(getItem(position));
-        view.deleteButton.setTag(position);
-        view.deleteButton.setOnClickListener(this);
 
         if (titles.size() <= 1) {
             view.deleteButton.setVisibility(View.INVISIBLE);
+        } else {
+            view.deleteButton.setVisibility(View.VISIBLE);
+            view.deleteButton.setTag(position);
+            view.deleteButton.setOnClickListener(this);
         }
+
         return rowView;
     }
 
