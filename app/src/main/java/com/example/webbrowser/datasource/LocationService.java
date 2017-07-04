@@ -40,7 +40,7 @@ public class LocationService extends Service implements IPGeoLocationListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION.equals(intent.getAction())) {
+        if (intent != null && COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION.equals(intent.getAction())) {
             locationHandler.post(fetcher);
         } else {
             locationHandler.postDelayed(fetcher, LOCATION_FETCH_DELAY);
