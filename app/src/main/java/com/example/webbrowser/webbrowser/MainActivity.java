@@ -114,6 +114,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void browserTabsLoaded(ArrayList<HashMap<String, String>> tabs) {
+        if (tabs.size() == 0) {
+            addNewTab();
+            return;
+        }
+
         for (HashMap<String, String> tab: tabs) {
             WebViewFragment webViewFragment = new WebViewFragment();
             String uid = tab.get(BrowserSharedPreferences.UUID);
@@ -227,13 +232,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webViewPagerAdapter = new WebViewPagerAdapter(getSupportFragmentManager());
         webViewPager.setAdapter(webViewPagerAdapter);
 
-        if (webViewFragments.size() == 0) {
-            addNewTab();
-        } else {
-            //TODO Discern between first run and loading persisting tabs, and orientation change.
-            if (savedInstanceState != null) {
-                webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
-            }
+        //TODO Discern between first run and loading persisting tabs, and orientation change.
+        if (savedInstanceState != null) {
+            webViewPager.setCurrentItem(savedInstanceState.getInt(ACTIVE_WEB_VIEW_INDEX_KEY, 0));
         }
 
         Intent locationServiceIntent = new Intent(this, LocationService.class);

@@ -51,23 +51,23 @@ public class BrowserSharedPreferences {
         public void run() {
             SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
             String uuidsCSV = preferences.getString(WEB_BROWSER_TAB_UUIDs_KEY, "");
-            if (uuidsCSV.length() == 0) {
-                return;
-            }
-            String[] uuids = uuidsCSV.split(",");
 
             ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 
-            for (String uuid: uuids) {
-                HashMap<String, String> tab = new HashMap<String, String>();
+            if (uuidsCSV.length() != 0) {
+                String[] uuids = uuidsCSV.split(",");
 
-                String title = preferences.getString(uuid + TITLE, "New Tab");
-                String url = preferences.getString(uuid + URL, "");
-                tab.put(TITLE, title);
-                tab.put(URL, url);
-                tab.put(UUID, uuid);
+                for (String uuid: uuids) {
+                    HashMap<String, String> tab = new HashMap<String, String>();
 
-                result.add(tab);
+                    String title = preferences.getString(uuid + TITLE, "New Tab");
+                    String url = preferences.getString(uuid + URL, "");
+                    tab.put(TITLE, title);
+                    tab.put(URL, url);
+                    tab.put(UUID, uuid);
+
+                    result.add(tab);
+                }
             }
 
             UpdateUIRunnable updateUIRunnable = new UpdateUIRunnable(result, listener.get());
