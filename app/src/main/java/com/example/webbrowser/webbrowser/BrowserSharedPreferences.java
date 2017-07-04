@@ -123,6 +123,7 @@ public class BrowserSharedPreferences {
 
             String csv =  TextUtils.join(",", uuids);
             editor.putString(WEB_BROWSER_TAB_UUIDs_KEY, csv);
+            editor.commit();
         }
     }
 
