@@ -16,7 +16,7 @@ import de.greenrobot.event.EventBus;
 public class LocationService extends Service implements IPGeoLocationListener {
 
     public static final String COM_WEBBROWSER_RETRIEVE_LOCATION_ACTION = "com.webbrowser.retrieveLocationAction";
-    public static final int LOCATION_FETCH_DELAY = 2 * 1000;
+    public static final int LOCATION_FETCH_DELAY = 60 * 1000;
     private LocationFetcher fetcher = new LocationFetcher();
 
     private String lastIPAddress;
