@@ -46,7 +46,6 @@
 
             </RelativeLayout>
 
-
             <Button
                 android:id="@+id/activity_main_new_tab_button"
                 android:layout_width="44dp"

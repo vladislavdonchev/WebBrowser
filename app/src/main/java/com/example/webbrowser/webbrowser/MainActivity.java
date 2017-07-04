@@ -356,6 +356,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void removeTab(String uuid) {
+        int currentTabIndex = webViewPager.getCurrentItem();
+        int removedTabIndex = webViewFragmentUids.indexOf(uuid);
+
+        int activeTabAfterRemoving = currentTabIndex >= removedTabIndex ? currentTabIndex - 1 : currentTabIndex;
+
         WebViewFragment webViewFragment = webViewFragments.get(uuid);
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.remove(webViewFragment);
@@ -372,6 +377,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         BrowserSharedPreferences.removeTab(this, uuid, webViewFragmentUids);
         updateTabsCounter();
+
+        webViewPager.setCurrentItem(activeTabAfterRemoving);
     }
 
     private void addNewTab() {
