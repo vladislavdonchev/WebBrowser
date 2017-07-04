@@ -352,6 +352,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void removeTab(String uuid) {
+        WebViewFragment webViewFragment = webViewFragments.get(uuid);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.remove(webViewFragment);
+        fragmentTransaction.commitNow();
+
+        restoredWebViewStates.remove(uuid);
+        restoredWebViewUrls.remove(uuid);
         webViewFragmentUids.remove(uuid);
         webViewFragments.remove(uuid);
         webPageTitles.remove(uuid);
