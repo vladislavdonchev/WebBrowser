@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
@@ -35,6 +36,9 @@ import android.widget.TextView;
 import com.example.webbrowser.datasource.Bookmark;
 import com.example.webbrowser.datasource.LocationService;
 import com.example.webbrowser.datasource.WriteBookmarkTask;
+
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private WebViewPagerAdapter webViewPagerAdapter;
 
     private ArrayList<String> webViewFragmentUids = new ArrayList<>();
-    private HashMap<String, WebViewFragment> webViewFragments = new HashMap<>();
+    private DualHashBidiMap<String, WebViewFragment> webViewFragments = new DualHashBidiMap<>();
     private HashMap<String, Bundle> restoredWebViewStates = new HashMap<>();
     private HashMap<String, String> restoredWebViewUrls = new HashMap<>();
     private HashMap<String, String> webPageTitles = new HashMap<>();
@@ -357,13 +361,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentTransaction.remove(webViewFragment);
         fragmentTransaction.commitNow();
 
+        webViewFragmentUids.remove(uuid);
         restoredWebViewStates.remove(uuid);
         restoredWebViewUrls.remove(uuid);
-        webViewFragmentUids.remove(uuid);
         webViewFragments.remove(uuid);
         webPageTitles.remove(uuid);
 
         webViewPagerAdapter.notifyDataSetChanged();
+        webViewPager.setAdapter(webViewPagerAdapter);
+
         BrowserSharedPreferences.removeTab(this, uuid, webViewFragmentUids);
         updateTabsCounter();
     }
@@ -414,13 +420,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        String currentFragmentURL = webViewFragments.get(webViewFragmentUids.get(position)).getFragmentURL();
-        addressBarEditText.setText(currentFragmentURL);
+        
     }
 
     @Override
     public void onPageSelected(int position) {
         BrowserSharedPreferences.setActiveTabIndex(this, position);
+        String currentFragmentURL = webViewFragments.get(webViewFragmentUids.get(position)).getFragmentURL();
+        addressBarEditText.setText(currentFragmentURL);
         Log.d(WebViewFragment.LOG_TAG, String.valueOf(position));
     }
 
@@ -453,6 +460,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
+        public int getItemPosition(Object object) {
+            return webViewFragmentUids.indexOf(webViewFragments.getKey(object));
+        }
+
+        @Override
         public int getCount() {
             return webViewFragments.size();
         }
@@ -475,8 +487,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void destroyItem(ViewGroup container, int position, Object object) {
             WebViewFragment webViewFragment = (WebViewFragment) object;
-            restoredWebViewStates.put(webViewFragmentUids.get(position), webViewFragment.getWebViewState());
-            Log.d(WebViewFragment.LOG_TAG, "webViewStateToBeRestored " + " " + webViewFragmentUids.get(position));
+            if (webViewFragments.containsValue(webViewFragment)) {
+                restoredWebViewStates.put(webViewFragmentUids.get(position), webViewFragment.getWebViewState());
+                Log.d(WebViewFragment.LOG_TAG, "webViewStateToBeRestored " + " " + webViewFragmentUids.get(position));
+            }
             super.destroyItem(container, position, object);
         }
     }
