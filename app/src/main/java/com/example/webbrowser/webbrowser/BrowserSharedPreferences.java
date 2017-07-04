@@ -51,6 +51,9 @@ public class BrowserSharedPreferences {
         public void run() {
             SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
             String uuidsCSV = preferences.getString(WEB_BROWSER_TAB_UUIDs_KEY, "");
+            if (uuidsCSV.length() == 0) {
+                return;
+            }
             String[] uuids = uuidsCSV.split(",");
 
             ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
